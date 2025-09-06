@@ -4,7 +4,7 @@ on:
   push:
     branches:
       - main
-      
+
 permissions:
   contents: write
 
@@ -19,12 +19,15 @@ jobs:
 
       - name: Setup Node
         uses: actions/setup-node@v3
+        with:
+          node-version: 18   # or 20, depending on what you use locally
+          cache: 'npm'
 
       - name: Install dependencies
-        uses: bahmutov/npm-install@v1
+        run: npm ci   # safer than npm install in CI
 
       - name: Build project
-        run: npm run build
+        run: npm run build   # runs "vite build" if that's in package.json
 
       - name: Upload production-ready build files
         uses: actions/upload-artifact@v4
