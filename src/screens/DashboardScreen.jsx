@@ -58,7 +58,7 @@ function DashboardScreen() {
                 <div className="bg-white bg-opacity-20 backdrop-blur-md rounded-3xl px-8 py-4 border border-white border-opacity-30 shadow-lg">
                     <div className="flex items-center">
                         <img
-                            src="../src/assets/image/icon.png"
+                            src="./src/assets/image/icon.png"
                             alt="HakbangQuest Icon"
                             className="w-8 h-8 object-contain rounded-md mr-3"
                         />
