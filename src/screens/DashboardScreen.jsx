@@ -148,9 +148,6 @@ function DashboardScreen() {
                 draggable
                 theme="dark"
             />
-
-            {/* Loader and Toast CSS */}
-            /* Loader and Toast CSS */
             <style>{`
   /* Loader dots */
   .loader-dots {
