@@ -30,6 +30,9 @@ function DashboardScreen() {
     const [loginEmail, setLoginEmail] = useState("");
     const [loginPassword, setLoginPassword] = useState("");
 
+    // Parallax background position state
+    const [bgPosition, setBgPosition] = useState(0);
+
     // Sync localStorage with isAdmin
     useEffect(() => {
         localStorage.setItem("adminLoggedIn", isAdmin ? "true" : "false");
@@ -45,6 +48,17 @@ function DashboardScreen() {
             }
         });
         return () => unsubscribe();
+    }, []);
+
+    // Handle scroll for parallax
+    useEffect(() => {
+        const handleScroll = () => {
+            const scrollY = window.scrollY; // vertical scroll
+            setBgPosition(-scrollY * 0.2); // reverse effect
+        };
+
+        window.addEventListener("scroll", handleScroll);
+        return () => window.removeEventListener("scroll", handleScroll);
     }, []);
 
     // Handle Admin Login
@@ -141,10 +155,12 @@ function DashboardScreen() {
             style={{
                 backgroundImage: `url(${backgroundImage})`,
                 backgroundSize: "cover",
-                backgroundPosition: "center",
+                backgroundPosition: `center ${bgPosition}px`,
                 backgroundRepeat: "no-repeat",
+                backgroundAttachment: "fixed", // Optional for a classic parallax feel
             }}
         >
+            {/* Overlay for dimming */}
             <div
                 className="absolute inset-0 z-0"
                 style={{
@@ -192,7 +208,6 @@ function DashboardScreen() {
 
             {/* Main Content */}
             <div className="flex flex-col items-center justify-center p-6 pb-12 mt-28 z-10 w-full">
-                {/* If Admin → Show SuggestionScreen */}
                 {isAdmin ? (
                     <SuggestionScreen />
                 ) : (
@@ -231,7 +246,7 @@ function DashboardScreen() {
                         {/* Welcome Message */}
                         <div className="mb-10 text-center">
                             <h2 className="text-white text-4xl mb-4 leading-tight font-bold">
-                                Welcome to 
+                                Welcome to
                                 <br />
                                 <span className="text-[#4361EE]">Hakbang</span>
                                 <span className="text-[#FFC107]">Quest</span>
