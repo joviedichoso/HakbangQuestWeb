@@ -64,7 +64,7 @@ Please change the parent <Route path="${N}"> to <Route path="${N==="/"?"*":`${N}
                        border border-white border-opacity-20
                        text-white text-lg font-bold
                        hover:from-[#3651D4] hover:to-[#4361EE] transition-all duration-300
-                       ${i?"cursor-not-allowed opacity-70":"cursor-pointer"}`,children:i?ut.jsxs("div",{className:"flex items-center",children:[ut.jsxs("div",{className:"loader-dots mr-2",children:[ut.jsx("span",{}),ut.jsx("span",{}),ut.jsx("span",{})]}),"Downloading..."]}):ut.jsxs(ut.Fragment,{children:[ut.jsx("i",{className:"fas fa-rocket mr-3"})," Download APK"]})}),ut.jsx("small",{className:"text-white text-xs opacity-60 mt-2 block select-none",children:"APK size - ~163MB | Version 1.0.0"})]})]}),ut.jsx(d1,{position:"top-center",autoClose:4e3,hideProgressBar:!1,newestOnTop:!0,closeOnClick:!0,pauseOnHover:!0,draggable:!0,theme:"dark"}),"/* Loader and Toast CSS */",ut.jsx("style",{children:`
+                       ${i?"cursor-not-allowed opacity-70":"cursor-pointer"}`,children:i?ut.jsxs("div",{className:"flex items-center",children:[ut.jsxs("div",{className:"loader-dots mr-2",children:[ut.jsx("span",{}),ut.jsx("span",{}),ut.jsx("span",{})]}),"Downloading..."]}):ut.jsxs(ut.Fragment,{children:[ut.jsx("i",{className:"fas fa-rocket mr-3"})," Download APK"]})}),ut.jsx("small",{className:"text-white text-xs opacity-60 mt-2 block select-none",children:"APK size - ~163MB | Version 1.0.0"})]})]}),ut.jsx(d1,{position:"top-center",autoClose:4e3,hideProgressBar:!1,newestOnTop:!0,closeOnClick:!0,pauseOnHover:!0,draggable:!0,theme:"dark"}),ut.jsx("style",{children:`
   /* Loader dots */
   .loader-dots {
     display: flex;
