@@ -10,7 +10,7 @@ function DashboardScreen() {
     const handleDownloadAPK = () => {
         setIsDownloading(true);
 
-        const apkUrl = "https://expo.dev/accounts/sdi23/projects/HakbangQuest/builds/9de8bba5-1d3a-4c1a-9444-f8a4c6ca6d35";
+        const apkUrl = "https://github.com/joviedichoso/HakbangQuestWeb/releases/download/v1.0.0/HakbangQuest.apk";
 
         // Trigger APK download
         const link = document.createElement("a");
