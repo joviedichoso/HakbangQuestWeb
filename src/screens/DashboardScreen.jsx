@@ -231,9 +231,10 @@ function DashboardScreen() {
                         {/* Welcome Message */}
                         <div className="mb-10 text-center">
                             <h2 className="text-white text-4xl mb-4 leading-tight font-bold">
-                                Welcome to Your
+                                Welcome to 
                                 <br />
-                                <span className="text-[#4361EE]">Dashboard</span>
+                                <span className="text-[#4361EE]">Hakbang</span>
+                                <span className="text-[#FFC107]">Quest</span>
                             </h2>
                             <p className="text-white text-base opacity-90 leading-relaxed px-4">
                                 Manage your fitness journey, track progress, and connect with the
