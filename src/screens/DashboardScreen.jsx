@@ -1,27 +1,43 @@
-import React, { useState, useEffect } from "react";
-import backgroundImage from "../../src/assets/image/jogging.jpg";
-import icon from "../../src/assets/image/icon.png";
+import React, { useState, useEffect, useMemo } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-
-// Firebase
-import { db } from "../firebaseConfig"; // adjust path if needed
+import { db } from "../firebaseConfig";
 import { collection, addDoc, serverTimestamp } from "firebase/firestore";
-
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+import SuggestionScreen from "./SuggestionScreen";
+import Header from "../components/Header";
+import Hero from "../components/Hero";
 
 const auth = getAuth();
 
-// Import the SuggestionScreen for Admin view
-import SuggestionScreen from "./SuggestionScreen";
+// Small media query hook
+function useMediaQuery(query) {
+    const [matches, setMatches] = useState(() => {
+        if (typeof window === "undefined") return false;
+        return window.matchMedia(query).matches;
+    });
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+        const mql = window.matchMedia(query);
+        const handler = (e) => setMatches(e.matches);
+        setMatches(mql.matches);
+        mql.addEventListener?.("change", handler);
+        mql.addListener?.(handler); // legacy
+        return () => {
+            mql.removeEventListener?.("change", handler);
+            mql.removeListener?.(handler);
+        };
+    }, [query]);
+    return matches;
+}
+
+const COLORS = { blue: "#4361EE", yellow: "#FFC107", ink: "#0F172A", text: "#1F2937", subtext: "#6B7280", bg: "#F8FAFC", card: "#FFFFFF", divider: "rgba(15, 23, 42, 0.06)" };
+const RADIUS = "16px";
+const SHADOW = "0 8px 24px rgba(15, 23, 42, 0.08)";
+const TRANSITION = "180ms ease";
 
 function DashboardScreen() {
-    // Initialize admin state from localStorage
-    const [isAdmin, setIsAdmin] = useState(() => {
-        const stored = localStorage.getItem("adminLoggedIn");
-        return stored === "true";
-    });
-
+    const [isAdmin, setIsAdmin] = useState(false);
     const [showLogin, setShowLogin] = useState(false);
     const [userName, setUserName] = useState("");
     const [suggestion, setSuggestion] = useState("");
@@ -30,85 +46,70 @@ function DashboardScreen() {
     const [loginEmail, setLoginEmail] = useState("");
     const [loginPassword, setLoginPassword] = useState("");
 
-    // Parallax background position state
-    const [bgPosition, setBgPosition] = useState(0);
+    // Breakpoints
+    const isLaptop = useMediaQuery("(max-width: 1024px)");
+    const isTablet = useMediaQuery("(max-width: 768px)");
+    const isMobile = useMediaQuery("(max-width: 480px)");
 
-    // Sync localStorage with isAdmin
     useEffect(() => {
-        localStorage.setItem("adminLoggedIn", isAdmin ? "true" : "false");
+        try {
+            const stored = localStorage.getItem("adminLoggedIn");
+            setIsAdmin(stored === "true");
+        } catch { }
+    }, []);
+
+    useEffect(() => {
+        try {
+            localStorage.setItem("adminLoggedIn", isAdmin ? "true" : "false");
+        } catch { }
     }, [isAdmin]);
 
-    // Verify Firebase auth state on load
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, (user) => {
-            if (user && user.email === "admin@hakbang.com") {
-                setIsAdmin(true);
-            } else {
-                setIsAdmin(false);
-            }
+            if (user && user.email === "admin@hakbang.com") setIsAdmin(true);
+            else setIsAdmin(false);
         });
         return () => unsubscribe();
     }, []);
 
-    // Handle scroll for parallax
-    useEffect(() => {
-        const handleScroll = () => {
-            const scrollY = window.scrollY; // vertical scroll
-            setBgPosition(-scrollY * 0.2); // reverse effect
-        };
-
-        window.addEventListener("scroll", handleScroll);
-        return () => window.removeEventListener("scroll", handleScroll);
-    }, []);
-
-    // Handle Admin Login
     const handleLogin = async () => {
         try {
-            const userCredential = await signInWithEmailAndPassword(
-                auth,
-                loginEmail,
-                loginPassword
-            );
+            const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
             if (userCredential.user.email === "admin@hakbang.com") {
                 setIsAdmin(true);
                 setShowLogin(false);
-                toast.success("✅ Logged in as Admin!");
+                toast.success("✅ Logged in as Admin!", { position: isMobile ? "top-center" : "top-right" });
             } else {
-                toast.error("❌ Not authorized!");
+                toast.error("❌ Not authorized!", { position: isMobile ? "top-center" : "top-right" });
             }
         } catch (err) {
             console.error("Login failed", err);
-            toast.error("❌ Invalid credentials!");
+            toast.error("❌ Invalid credentials!", { position: isMobile ? "top-center" : "top-right" });
         }
     };
 
-    // Handle Admin Logout
     const handleLogout = async () => {
         try {
             await signOut(auth);
             setIsAdmin(false);
-            toast.info("👋 Logged out successfully.");
+            toast.info("👋 Logged out successfully.", { position: isMobile ? "top-center" : "top-right" });
         } catch (err) {
             console.error("Logout failed", err);
-            toast.error("❌ Logout failed.");
+            toast.error("❌ Logout failed.", { position: isMobile ? "top-center" : "top-right" });
         }
     };
 
-    // Download APK
     const handleDownloadAPK = () => {
         setIsDownloading(true);
-        const apkUrl =
-            "https://github.com/joviedichoso/HakbangQuestWeb/releases/download/v1.0.0/HakbangQuest.apk";
-
+        const apkUrl = "https://github.com/joviedichoso/HakbangQuestWeb/releases/download/v1.0.0/HakbangQuest.apk";
         const link = document.createElement("a");
         link.href = apkUrl;
         link.download = "HakbangQuest.apk";
         link.click();
-
         setTimeout(() => {
             setIsDownloading(false);
             toast.success("APK downloaded! Tap to open.", {
-                position: "top-center",
+                position: isMobile ? "top-center" : "top-right",
                 autoClose: 4000,
                 onClick: () => window.open(apkUrl, "_blank"),
                 className: "game-toast",
@@ -118,17 +119,15 @@ function DashboardScreen() {
         }, 2000);
     };
 
-    // Submit Suggestion (for guest users only)
     const handleSubmitSuggestion = async () => {
         if (!userName.trim()) {
-            toast.error("Please enter your name before submitting!");
+            toast.error("Please enter a name!", { position: isMobile ? "top-center" : "top-right" });
             return;
         }
         if (!suggestion.trim()) {
-            toast.error("Please write something before submitting!");
+            toast.error("Please write a suggestion!", { position: isMobile ? "top-center" : "top-right" });
             return;
         }
-
         setIsSubmitting(true);
         try {
             await addDoc(collection(db, "suggestions"), {
@@ -137,246 +136,282 @@ function DashboardScreen() {
                 createdAt: serverTimestamp(),
                 user: { email: "guest", role: "user" },
             });
-
             setUserName("");
             setSuggestion("");
-            toast.success("✅ Thanks for your suggestion!");
+            toast.success("✅ Thanks for your suggestion!", { position: isMobile ? "top-center" : "top-right" });
         } catch (err) {
             console.error("Error adding suggestion:", err);
-            toast.error("❌ Failed to send suggestion.");
+            toast.error("❌ Failed to send suggestion.", { position: isMobile ? "top-center" : "top-right" });
         } finally {
             setIsSubmitting(false);
         }
     };
 
+    // Responsive styles derived from base tokens
+    const styles = {
+        app: {
+            background: COLORS.bg,
+            color: COLORS.text,
+            minHeight: "100dvh",
+            lineHeight: 1.45,
+            fontFamily:
+                'Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial',
+        },
+        main: {
+            maxWidth: isLaptop ? 1000 : 1120,
+            margin: "0 auto",
+            padding: isMobile ? "16px 12px 48px" : isTablet ? "20px 14px 56px" : "24px 16px 64px",
+        },
+        cardsSection: {
+            display: "grid",
+            gridTemplateColumns: isMobile
+                ? "repeat(1, minmax(0, 1fr))"
+                : isTablet
+                    ? "repeat(2, minmax(0, 1fr))"
+                    : "repeat(3, minmax(0, 1fr))",
+            gap: isMobile ? 12 : 16,
+        },
+        card: {
+            background: COLORS.card,
+            borderRadius: RADIUS,
+            boxShadow: SHADOW,
+            padding: isMobile ? 12 : 16,
+            display: "flex",
+            flexDirection: "column",
+            gap: isMobile ? 6 : 8,
+            minHeight: 140,
+        },
+        cardIcon: {
+            width: isMobile ? 40 : 44,
+            height: isMobile ? 40 : 44,
+            borderRadius: 12,
+            display: "grid",
+            placeItems: "center",
+            fontSize: isMobile ? 20 : 22,
+            background: "linear-gradient(135deg, rgba(67,97,238,0.12), rgba(255,193,7,0.18))",
+        },
+        cardTitle: { margin: "6px 0 0", fontSize: isMobile ? 16 : 18, fontWeight: 800, color: COLORS.ink },
+        cardText: { margin: 0, color: COLORS.subtext, fontSize: isMobile ? 13.5 : 14 },
+        suggestSection: { marginTop: isTablet ? 28 : 32, display: "grid", gap: isMobile ? 12 : 16 },
+        suggestHeader: { display: "flex", flexDirection: "column", gap: 6 },
+        h2: { margin: 0, fontSize: isMobile ? 20 : 22, fontWeight: 900, color: COLORS.ink },
+        suggestSub: { margin: 0, color: COLORS.subtext, fontSize: isMobile ? 13.5 : 14 },
+        formCard: {
+            background: COLORS.card,
+            borderRadius: RADIUS,
+            boxShadow: SHADOW,
+            padding: isMobile ? 12 : 16,
+            display: "grid",
+            gap: isMobile ? 10 : 12,
+        },
+        formRow: { display: "grid", gridTemplateColumns: "1fr", gap: isMobile ? 10 : 12 },
+        inputGroup: { display: "grid", gap: isMobile ? 6 : 8 },
+        label: { fontWeight: 700, color: COLORS.ink, fontSize: isMobile ? 13.5 : 14 },
+        input: {
+            background: "#fff",
+            border: `1px solid ${COLORS.divider}`,
+            borderRadius: 12,
+            padding: isMobile ? "10px 11px" : "12px 12px",
+            outline: "none",
+            transition: "180ms ease",
+            fontSize: isMobile ? 13.5 : 14,
+        },
+        textarea: { minHeight: isMobile ? 100 : 120, resize: "vertical" },
+        formActions: { display: "flex", justifyContent: "flex-end" },
+        adminSection: { marginTop: isTablet ? 32 : 40, display: "grid", gap: isMobile ? 10 : 12 },
+        sectionHead: {
+            display: "flex",
+            alignItems: isMobile ? "flex-start" : "center",
+            justifyContent: "space-between",
+            gap: 8,
+            flexDirection: isMobile ? "column" : "row",
+        },
+        badge: {
+            background: COLORS.yellow,
+            color: "#111827",
+            borderRadius: 999,
+            padding: isMobile ? "5px 9px" : "6px 10px",
+            fontWeight: 800,
+            fontSize: 12,
+            alignSelf: isMobile ? "flex-start" : "center",
+        },
+        // Modal responsive styles inline
+        modalOverlay: {
+            position: "fixed",
+            inset: 0,
+            background: "rgba(15,23,42,0.42)",
+            backdropFilter: "blur(3px)",
+            display: "grid",
+            placeItems: "center",
+            padding: isMobile ? 12 : 16,
+            zIndex: 60,
+        },
+        modalCard: {
+            width: "100%",
+            maxWidth: isMobile ? 360 : 440,
+            background: "#fff",
+            borderRadius: 16,
+            boxShadow: "0 8px 24px rgba(15, 23, 42, 0.08)",
+            overflow: "hidden",
+        },
+        modalHeader: {
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            padding: isMobile ? 12 : 16,
+            borderBottom: `1px solid ${COLORS.divider}`,
+        },
+        modalTitle: { margin: 0, fontWeight: 900, color: "#0F172A", fontSize: isMobile ? 16 : 18 },
+        modalClose: {
+            border: "none",
+            background: "transparent",
+            fontSize: isMobile ? 22 : 24,
+            lineHeight: 1,
+            cursor: "pointer",
+            color: "#6B7280",
+        },
+        modalBody: { display: "grid", gap: isMobile ? 10 : 12, padding: isMobile ? 12 : 16 },
+        modalFooter: {
+            display: "flex",
+            justifyContent: "flex-end",
+            padding: isMobile ? 12 : 16,
+            gap: 8,
+            borderTop: `1px solid ${COLORS.divider}`,
+        },
+        primaryBtn: {
+            padding: isMobile ? "10px 14px" : "12px 16px",
+            borderRadius: 12,
+            background: COLORS.blue,
+            color: "#fff",
+            fontWeight: 800,
+            border: "none",
+            boxShadow: "0 6px 16px rgba(67,97,238,0.35)",
+            cursor: "pointer",
+        },
+        secondaryBtn: {
+            padding: isMobile ? "8px 10px" : "10px 12px",
+            borderRadius: 12,
+            border: `1px solid ${COLORS.divider}`,
+            background: "transparent",
+            color: "#0F172A",
+            fontWeight: 600,
+            cursor: "pointer",
+        },
+    };
+
     return (
-        <div
-            className="min-h-screen flex flex-col items-center justify-center relative"
-            style={{
-                backgroundImage: `url(${backgroundImage})`,
-                backgroundSize: "cover",
-                backgroundPosition: `center ${bgPosition}px`,
-                backgroundRepeat: "no-repeat",
-                backgroundAttachment: "fixed", // Optional for a classic parallax feel
-            }}
-        >
-            {/* Overlay for dimming */}
-            <div
-                className="absolute inset-0 z-0"
-                style={{
-                    background:
-                        "linear-gradient(to bottom, rgba(18, 24, 38, 0.3), rgba(18, 24, 38, 0.8), rgba(18, 24, 38, 0.95))",
+        <div style={styles.app}>
+            <Header
+                isAdmin={isAdmin}
+                onLogout={handleLogout}
+                onLoginToggle={() => setShowLogin((s) => !s)}
+                onInstall={handleDownloadAPK}
+                isInstalling={isDownloading}
+            />
+
+            <Hero
+                onGetApp={handleDownloadAPK}
+                onShareSuggestion={() => {
+                    const el = document.getElementById("suggest");
+                    if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
-            ></div>
+            />
 
-            {/* Header */}
-            <div className="absolute top-12 inset-x-4 z-10 flex flex-col md:flex-row items-center justify-between bg-white bg-opacity-20 backdrop-blur-md rounded-3xl px-4 py-2 border border-white border-opacity-30 shadow-lg max-w-7xl mx-auto">
-                {/* Logo & Title */}
-                <div className="flex items-center space-x-3">
-                    <img
-                        src={icon}
-                        alt="HakbangQuest Icon"
-                        className="w-8 h-8 object-contain rounded-md"
-                    />
-                    <h1 className="text-[#4361EE] text-2xl font-bold tracking-wide whitespace-nowrap">
-                        HakbangQuest
-                    </h1>
-                </div>
+            <main style={styles.main}>
+                {/* Feature cards */}
+                <section style={styles.cardsSection}>
+                    <div style={styles.card}>
+                        <div style={styles.cardIcon}>💪</div>
+                        <h3 style={styles.cardTitle}>Build Strength</h3>
+                        <p style={styles.cardText}>Push your limits with sets, groups and reps.</p><p style={styles.cardText}>Track your reps and watch your strength grow.</p>
+                    </div>
 
-                {/* Admin Button / Logout */}
-                <div className="mt-4 md:mt-0">
-                    {isAdmin ? (
-                        <div className="flex items-center space-x-4">
-                            <span className="text-[#4361EE] font-semibold">👑 Admin</span>
-                            <button
-                                onClick={handleLogout}
-                                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg shadow transition"
-                            >
-                                Logout
-                            </button>
-                        </div>
-                    ) : (
-                        <button
-                            onClick={() => setShowLogin(true)}
-                            className="bg-[#4361EE] text-white px-4 py-2 rounded-lg shadow hover:bg-[#3651D4] transition"
-                        >
-                            Admin Login
-                        </button>
-                    )}
-                </div>
-            </div>
+                    <div style={styles.card}>
+                        <div style={styles.cardIcon}>🎯</div>
+                        <h3 style={styles.cardTitle}>Goals</h3>
+                        <p style={styles.cardText}>Set targets and celebrate streaks with clear progress.</p>
+                    </div>
+                    <div style={styles.card}>
+                        <div style={styles.cardIcon}>🤝</div>
+                        <h3 style={styles.cardTitle}>Community</h3>
+                        <p style={styles.cardText}>Share milestones and stay motivated together.</p>
+                    </div>
+                </section>
 
-            {/* Main Content */}
-            <div className="flex flex-col items-center justify-center p-6 pb-12 mt-28 z-10 w-full">
-                {isAdmin ? (
-                    <SuggestionScreen />
-                ) : (
-                    <>
-                        {/* Features */}
-                        <div className="mb-8 mt-16">
-                            <div className="flex justify-center mb-6">
-                                {[
-                                    { icon: "🏆", color: "#FFD166", label: "Achievements" },
-                                    { icon: "🤝", color: "#06D6A0", label: "Community" },
-                                    { icon: "📈", color: "#4361EE", label: "Progress" },
-                                ].map((feature) => (
-                                    <div
-                                        key={feature.label}
-                                        className="flex flex-col items-center mx-4"
-                                    >
-                                        <div
-                                            className="p-4 rounded-full mb-2 border-2 border-white border-opacity-20 shadow-md"
-                                            style={{ backgroundColor: feature.color + "20" }}
-                                        >
-                                            <span
-                                                className="text-2xl"
-                                                style={{ color: feature.color }}
-                                            >
-                                                {feature.icon}
-                                            </span>
-                                        </div>
-                                        <p className="text-white text-sm opacity-90 font-medium">
-                                            {feature.label}
-                                        </p>
-                                    </div>
-                                ))}
+                {/* Suggestion form */}
+                <section id="suggest" style={styles.suggestSection}>
+                    <div style={styles.suggestHeader}>
+                        <h2 style={styles.h2}>Suggest a feature</h2>
+                        <p style={styles.suggestSub}>Keep it short and actionable—every idea helps improve HakbangQuest.</p>
+                    </div>
+
+                    <div style={styles.formCard}>
+                        <div style={styles.formRow}>
+                            <div style={styles.inputGroup}>
+                                <label htmlFor="name" style={styles.label}>Name</label>
+                                <input id="name" type="text" placeholder="Enter name" value={userName} onChange={(e) => setUserName(e.target.value)} style={styles.input} />
                             </div>
                         </div>
 
-                        {/* Welcome Message */}
-                        <div className="mb-10 text-center">
-                            <h2 className="text-white text-4xl mb-4 leading-tight font-bold">
-                                Welcome to
-                                <br />
-                                <span className="text-[#4361EE]">Hakbang</span>
-                                <span className="text-[#FFC107]">Quest</span>
-                            </h2>
-                            <p className="text-white text-base opacity-90 leading-relaxed px-4">
-                                Manage your fitness journey, track progress, and connect with the
-                                community.
-                            </p>
+                        <div style={styles.formRow}>
+                            <div style={{ ...styles.inputGroup, width: "100%" }}>
+                                <label htmlFor="suggestion" style={styles.label}>Suggestion</label>
+                                <textarea id="suggestion" placeholder="Share your idea…" rows={4} value={suggestion} onChange={(e) => setSuggestion(e.target.value)} style={{ ...styles.input, ...styles.textarea }} />
+                            </div>
                         </div>
 
-                        {/* Download Section */}
-                        <div className="w-full max-w-sm flex flex-col items-center">
-                            <p className="mb-4 text-lg font-medium text-white opacity-90 text-center">
-                                Install HakbangQuest on your Android device now!
-                            </p>
+                        <div style={styles.formActions}>
                             <button
-                                onClick={handleDownloadAPK}
-                                disabled={isDownloading}
-                                className={`w-full mb-6 shadow-lg
-                       bg-gradient-to-r from-[#4361EE] to-[#3651D4]
-                       py-3 px-6 rounded-3xl items-center flex justify-center
-                       border border-white border-opacity-20
-                       text-white text-lg font-bold
-                       hover:from-[#3651D4] hover:to-[#4361EE] transition-all duration-300
-                       ${isDownloading ? "cursor-not-allowed opacity-70" : "cursor-pointer"}`}
-                            >
-                                {isDownloading ? (
-                                    <div className="flex items-center">
-                                        <div className="loader-dots mr-2">
-                                            <span></span>
-                                            <span></span>
-                                            <span></span>
-                                        </div>
-                                        Downloading...
-                                    </div>
-                                ) : (
-                                    <>
-                                        <i className="fas fa-rocket mr-3"></i> Download APK
-                                    </>
-                                )}
-                            </button>
-
-                            <small className="text-white text-xs opacity-60 mt-2 block select-none">
-                                APK size - ~163MB | Version 1.0.0
-                            </small>
-                        </div>
-
-                        {/* Suggestion Box (for guest users only) */}
-                        <div className="w-full max-w-md mt-10 bg-white bg-opacity-10 backdrop-blur-md p-6 rounded-2xl shadow-md border border-white border-opacity-20">
-                            <h3 className="text-[#4361EE] text-lg font-semibold mb-3">
-                                💡 Got a suggestion?
-                            </h3>
-                            <input
-                                type="text"
-                                value={userName}
-                                onChange={(e) => setUserName(e.target.value)}
-                                placeholder="Your Name"
-                                className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#4361EE] resize-none mb-3"
-                            />
-                            <textarea
-                                value={suggestion}
-                                onChange={(e) => setSuggestion(e.target.value)}
-                                placeholder="Write your suggestion..."
-                                className="w-full p-3 rounded-lg border border-gray-300 focus:outline-none focus:ring-2 focus:ring-[#4361EE] resize-none"
-                                rows="3"
-                            />
-                            <button
+                                style={{ ...styles.primaryBtn }}
                                 onClick={handleSubmitSuggestion}
                                 disabled={isSubmitting}
-                                className="mt-3 w-full bg-[#4361EE] text-white font-bold py-2 rounded-lg hover:bg-[#3651D4] transition-all disabled:opacity-60"
+                                aria-busy={isSubmitting}
                             >
-                                {isSubmitting ? "Sending..." : "Send Suggestion"}
+                                {isSubmitting ? "Submitting…" : "Submit"}
                             </button>
                         </div>
-                    </>
+                    </div>
+                </section>
+
+                {/* Admin table */}
+                {isAdmin && (
+                    <section style={styles.adminSection}>
+                        <div style={styles.sectionHead}>
+                            <h2 style={styles.h2}>Suggestions</h2>
+                            <span style={styles.badge}>Admin</span>
+                        </div>
+                        <SuggestionScreen />
+                    </section>
                 )}
-            </div>
+            </main>
 
             {/* Admin Login Modal */}
-            {showLogin && (
-                <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-60 z-50">
-                    <div className="bg-white p-6 rounded-2xl w-80 shadow-lg">
-                        <h2 className="text-xl font-bold mb-4 text-center">Admin Login</h2>
-                        <input
-                            type="email"
-                            placeholder="Email"
-                            value={loginEmail}
-                            onChange={(e) => setLoginEmail(e.target.value)}
-                            className="w-full p-2 mb-3 border rounded"
-                        />
-                        <input
-                            type="password"
-                            placeholder="Password"
-                            value={loginPassword}
-                            onChange={(e) => setLoginPassword(e.target.value)}
-                            className="w-full p-2 mb-3 border rounded"
-                        />
-                        <div className="flex justify-between">
-                            <button
-                                onClick={handleLogin}
-                                className="bg-[#4361EE] text-white px-4 py-2 rounded-lg hover:bg-[#3651D4]"
-                            >
-                                Login
-                            </button>
-                            <button
-                                onClick={() => setShowLogin(false)}
-                                className="px-4 py-2 border rounded-lg hover:bg-gray-100"
-                            >
-                                Cancel
-                            </button>
+            {showLogin && !isAdmin && (
+                <div role="dialog" aria-modal="true" style={styles.modalOverlay}>
+                    <div style={styles.modalCard}>
+                        <div style={styles.modalHeader}>
+                            <h3 style={styles.modalTitle}>Admin login</h3>
+                            <button onClick={() => setShowLogin(false)} style={styles.modalClose}>×</button>
+                        </div>
+                        <div style={styles.modalBody}>
+                            <div style={{ display: "grid", gap: 8 }}>
+                                <label htmlFor="email" style={{ fontWeight: 700, color: "#0F172A" }}>Email</label>
+                                <input id="email" type="email" placeholder="admin@hakbang.com" value={loginEmail} onChange={(e) => setLoginEmail(e.target.value)} style={{ background: "#fff", border: `1px solid ${COLORS.divider}`, borderRadius: 12, padding: isMobile ? "10px 11px" : "12px 12px", outline: "none", fontSize: isMobile ? 13.5 : 14 }} />
+                            </div>
+                            <div style={{ display: "grid", gap: 8 }}>
+                                <label htmlFor="password" style={{ fontWeight: 700, color: "#0F172A" }}>Password</label>
+                                <input id="password" type="password" placeholder="••••••••" value={loginPassword} onChange={(e) => setLoginPassword(e.target.value)} style={{ background: "#fff", border: `1px solid ${COLORS.divider}`, borderRadius: 12, padding: isMobile ? "10px 11px" : "12px 12px", outline: "none", fontSize: isMobile ? 13.5 : 14 }} />
+                            </div>
+                        </div>
+                        <div style={styles.modalFooter}>
+                            <button onClick={() => setShowLogin(false)} style={styles.secondaryBtn}>Cancel</button>
+                            <button onClick={handleLogin} style={styles.primaryBtn}>Login</button>
                         </div>
                     </div>
                 </div>
             )}
 
-            {/* Toast Container */}
-            <ToastContainer position="top-center" autoClose={4000} theme="dark" />
-
-            {/* Loader Animation */}
-            <style>{`
-        .loader-dots { display: flex; align-items: center; justify-content: center; }
-        .loader-dots span {
-          display: inline-block; width: 6px; height: 6px; margin: 0 3px;
-          background: white; border-radius: 50%;
-          animation: pulse 0.6s infinite ease-in-out;
-        }
-        .loader-dots span:nth-child(2) { animation-delay: 0.2s; }
-        .loader-dots span:nth-child(3) { animation-delay: 0.4s; }
-        @keyframes pulse { 0%, 80%, 100% { transform: scale(0); opacity: 0.3; } 40% { transform: scale(1); opacity: 1; } }
-      `}</style>
+            <ToastContainer position={isMobile ? "top-center" : "top-right"} />
         </div>
     );
 }
