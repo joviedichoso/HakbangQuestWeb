@@ -8,6 +8,10 @@ import SuggestionScreen from "./SuggestionScreen";
 import Header from "../components/Header";
 import Hero from "../components/Hero";
 
+// AOS Import
+import AOS from 'aos';
+import 'aos/dist/aos.css';
+
 // Local images
 import Build from "../assets/image/build.webp";
 import Goals from "../assets/image/goals.webp";
@@ -21,6 +25,7 @@ function useMediaQuery(query) {
     if (typeof window === "undefined") return false;
     return window.matchMedia(query).matches;
   });
+
   useEffect(() => {
     if (typeof window === "undefined") return;
     const mql = window.matchMedia(query);
@@ -33,10 +38,21 @@ function useMediaQuery(query) {
       mql.removeListener?.(handler);
     };
   }, [query]);
+
   return matches;
 }
 
-const COLORS = { blue: "#4361EE", yellow: "#FFC107", ink: "#0F172A", text: "#1F2937", subtext: "#6B7280", bg: "#F8FAFC", card: "#FFFFFF", divider: "rgba(15, 23, 42, 0.06)" };
+const COLORS = {
+  blue: "#4361EE",
+  yellow: "#FFC107",
+  ink: "#0F172A",
+  text: "#1F2937",
+  subtext: "#6B7280",
+  bg: "#F8FAFC",
+  card: "#FFFFFF",
+  divider: "rgba(15, 23, 42, 0.06)"
+};
+
 const RADIUS = "16px";
 const SHADOW = "0 8px 24px rgba(15, 23, 42, 0.08)";
 const TRANSITION = "180ms ease";
@@ -55,6 +71,17 @@ function DashboardScreen() {
   const isLaptop = useMediaQuery("(max-width: 1024px)");
   const isTablet = useMediaQuery("(max-width: 768px)");
   const isMobile = useMediaQuery("(max-width: 480px)");
+
+  // Initialize AOS
+  useEffect(() => {
+    AOS.init({
+      duration: 800,
+      easing: 'ease-in-out',
+      once: true,
+      offset: 100,
+      delay: 100
+    });
+  }, []);
 
   useEffect(() => {
     try {
@@ -133,13 +160,17 @@ function DashboardScreen() {
       toast.error("Please write a suggestion!", { position: isMobile ? "top-center" : "top-right" });
       return;
     }
+
     setIsSubmitting(true);
     try {
       await addDoc(collection(db, "suggestions"), {
         name: userName,
         text: suggestion,
         createdAt: serverTimestamp(),
-        user: { email: "guest", role: "user" },
+        user: {
+          email: "guest",
+          role: "user"
+        },
       });
       setUserName("");
       setSuggestion("");
@@ -152,15 +183,14 @@ function DashboardScreen() {
     }
   };
 
-  // Styles
+  // Enhanced styles with hover effects and larger cards
   const styles = {
     app: {
       background: COLORS.bg,
       color: COLORS.text,
       minHeight: "100dvh",
       lineHeight: 1.45,
-      fontFamily:
-        'Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial',
+      fontFamily: 'Inter, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial',
     },
     main: {
       maxWidth: isLaptop ? 1000 : 1120,
@@ -169,60 +199,99 @@ function DashboardScreen() {
     },
     cardsSection: {
       display: "grid",
-      gridTemplateColumns: isMobile
-        ? "repeat(1, minmax(0, 1fr))"
-        : isTablet
-        ? "repeat(2, minmax(0, 1fr))"
-        : "repeat(3, minmax(0, 1fr))",
-      gap: isMobile ? 12 : 16,
+      gridTemplateColumns: isMobile ? "repeat(1, minmax(0, 1fr))" : isTablet ? "repeat(2, minmax(0, 1fr))" : "repeat(3, minmax(0, 1fr))",
+      gap: isMobile ? 16 : isTablet ? 20 : 24,
+      marginBottom: isTablet ? 32 : 40,
     },
-    // Image card: background image with bottom-aligned content on a dark gradient
+    // Enhanced card with hover effects and larger size
     card: {
       position: "relative",
       display: "flex",
       flexDirection: "column",
       justifyContent: "flex-end",
-      minHeight: 220,
-      borderRadius: RADIUS,
+      minHeight: isMobile ? 280 : isTablet ? 320 : 360, // Increased heights
+      borderRadius: 20, // Slightly more rounded
       overflow: "hidden",
-      boxShadow: SHADOW,
+      boxShadow: "0 12px 32px rgba(15, 23, 42, 0.12)", // Enhanced shadow
       backgroundSize: "cover",
       backgroundPosition: "center",
-      // subtle zoom for crisp look
       transform: "translateZ(0)",
+      cursor: "pointer",
+      transition: "all 200ms ease-in-out",
+      // Hover effects
+      ":hover": {
+        transform: "translateY(-8px) scale(1.02)",
+        boxShadow: "0 20px 40px rgba(67, 97, 238, 0.25)",
+      }
     },
-    // Gradient layer to ensure readability across images
+    // Enhanced gradient for better text contrast
     cardOverlay: {
       position: "absolute",
       inset: 0,
-      background:
-        "linear-gradient(180deg, rgba(0,0,0,0.0) 40%, rgba(0,0,0,0.45) 75%, rgba(0,0,0,0.65) 100%)",
+      background: "linear-gradient(180deg, rgba(0,0,0,0.1) 20%, rgba(0,0,0,0.4) 60%, rgba(0,0,0,0.8) 100%)",
       pointerEvents: "none",
     },
     cardContent: {
       position: "relative",
       zIndex: 1,
-      padding: isMobile ? 12 : 16,
+      padding: isMobile ? 16 : isTablet ? 20 : 24, // Increased padding
       color: "#fff",
       display: "grid",
-      gap: isMobile ? 6 : 8,
-      textShadow: "0 1px 2px rgba(0,0,0,0.35)",
+      gap: isMobile ? 8 : 10,
+      textShadow: "0 2px 4px rgba(0,0,0,0.6)", // Enhanced text shadow
     },
     cardTitle: {
       margin: 0,
-      fontSize: isMobile ? 16 : 18,
+      fontSize: isMobile ? 18 : isTablet ? 20 : 22, // Larger font sizes
       fontWeight: 800,
       letterSpacing: 0.2,
     },
     cardText: {
       margin: 0,
-      fontSize: isMobile ? 13.5 : 14,
+      fontSize: isMobile ? 14 : 15, // Slightly larger text
       opacity: 0.95,
+      lineHeight: 1.5,
     },
-    suggestSection: { marginTop: isTablet ? 28 : 32, display: "grid", gap: isMobile ? 12 : 16 },
-    suggestHeader: { display: "flex", flexDirection: "column", gap: 6 },
-    h2: { margin: 0, fontSize: isMobile ? 20 : 22, fontWeight: 900, color: COLORS.ink },
-    suggestSub: { margin: 0, color: COLORS.subtext, fontSize: isMobile ? 13.5 : 14 },
+    // Future-proofing: Button styles for cards
+    cardButton: {
+      marginTop: 12,
+      padding: "10px 16px",
+      borderRadius: 12,
+      background: "rgba(255, 255, 255, 0.2)",
+      backdropFilter: "blur(10px)",
+      border: "1px solid rgba(255, 255, 255, 0.3)",
+      color: "#fff",
+      fontWeight: 600,
+      cursor: "pointer",
+      transition: "all 200ms ease-in-out",
+      alignSelf: "flex-start",
+      ":hover": {
+        background: "rgba(255, 255, 255, 0.3)",
+        transform: "scale(1.05)",
+        boxShadow: "0 4px 12px rgba(0, 0, 0, 0.2)",
+      }
+    },
+    suggestSection: {
+      marginTop: isTablet ? 28 : 32,
+      display: "grid",
+      gap: isMobile ? 12 : 16
+    },
+    suggestHeader: {
+      display: "flex",
+      flexDirection: "column",
+      gap: 6
+    },
+    h2: {
+      margin: 0,
+      fontSize: isMobile ? 20 : 22,
+      fontWeight: 900,
+      color: COLORS.ink
+    },
+    suggestSub: {
+      margin: 0,
+      color: COLORS.subtext,
+      fontSize: isMobile ? 13.5 : 14
+    },
     formCard: {
       background: COLORS.card,
       borderRadius: RADIUS,
@@ -231,9 +300,20 @@ function DashboardScreen() {
       display: "grid",
       gap: isMobile ? 10 : 12,
     },
-    formRow: { display: "grid", gridTemplateColumns: "1fr", gap: isMobile ? 10 : 12 },
-    inputGroup: { display: "grid", gap: isMobile ? 6 : 8 },
-    label: { fontWeight: 700, color: COLORS.ink, fontSize: isMobile ? 13.5 : 14 },
+    formRow: {
+      display: "grid",
+      gridTemplateColumns: "1fr",
+      gap: isMobile ? 10 : 12
+    },
+    inputGroup: {
+      display: "grid",
+      gap: isMobile ? 6 : 8
+    },
+    label: {
+      fontWeight: 700,
+      color: COLORS.ink,
+      fontSize: isMobile ? 13.5 : 14
+    },
     input: {
       background: "#fff",
       border: `1px solid ${COLORS.divider}`,
@@ -243,9 +323,19 @@ function DashboardScreen() {
       transition: "180ms ease",
       fontSize: isMobile ? 13.5 : 14,
     },
-    textarea: { minHeight: isMobile ? 100 : 120, resize: "vertical" },
-    formActions: { display: "flex", justifyContent: "flex-end" },
-    adminSection: { marginTop: isTablet ? 32 : 40, display: "grid", gap: isMobile ? 10 : 12 },
+    textarea: {
+      minHeight: isMobile ? 100 : 120,
+      resize: "vertical"
+    },
+    formActions: {
+      display: "flex",
+      justifyContent: "flex-end"
+    },
+    adminSection: {
+      marginTop: isTablet ? 32 : 40,
+      display: "grid",
+      gap: isMobile ? 10 : 12
+    },
     sectionHead: {
       display: "flex",
       alignItems: isMobile ? "flex-start" : "center",
@@ -287,7 +377,12 @@ function DashboardScreen() {
       padding: isMobile ? 12 : 16,
       borderBottom: `1px solid ${COLORS.divider}`,
     },
-    modalTitle: { margin: 0, fontWeight: 900, color: "#0F172A", fontSize: isMobile ? 16 : 18 },
+    modalTitle: {
+      margin: 0,
+      fontWeight: 900,
+      color: "#0F172A",
+      fontSize: isMobile ? 16 : 18
+    },
     modalClose: {
       border: "none",
       background: "transparent",
@@ -296,7 +391,11 @@ function DashboardScreen() {
       cursor: "pointer",
       color: "#6B7280",
     },
-    modalBody: { display: "grid", gap: isMobile ? 10 : 12, padding: isMobile ? 12 : 16 },
+    modalBody: {
+      display: "grid",
+      gap: isMobile ? 10 : 12,
+      padding: isMobile ? 12 : 16
+    },
     modalFooter: {
       display: "flex",
       justifyContent: "flex-end",
@@ -327,190 +426,193 @@ function DashboardScreen() {
     },
   };
 
+  // Custom CSS for hover effects (since inline styles don't support :hover)
+  const cardHoverStyles = `
+    .feature-card {
+      transition: all 200ms ease-in-out !important;
+    }
+    .feature-card:hover {
+      transform: translateY(-8px) scale(1.02) !important;
+      box-shadow: 0 20px 40px rgba(67, 97, 238, 0.25) !important;
+    }
+    .card-button {
+      transition: all 200ms ease-in-out !important;
+    }
+    .card-button:hover {
+      background: rgba(255, 255, 255, 0.3) !important;
+      transform: scale(1.05) !important;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2) !important;
+    }
+  `;
+
+  const features = [
+    {
+      image: Build,
+      title: "Build Strength",
+      description: "Transform your fitness journey with personalized workouts and progress tracking.",
+    },
+    {
+      image: Goals,
+      title: "Set Goals",
+      description: "Define your objectives and watch as you achieve them step by step.",
+    },
+    {
+      image: Community,
+      title: "Join Community",
+      description: "Connect with like-minded individuals and share your fitness achievements.",
+    },
+  ];
+
   return (
     <div style={styles.app}>
-      <Header
-        isAdmin={isAdmin}
-        onLogout={handleLogout}
-        onLoginToggle={() => setShowLogin((s) => !s)}
-        onInstall={handleDownloadAPK}
-        isInstalling={isDownloading}
-      />
-
-      <Hero
-        onGetApp={handleDownloadAPK}
-        onShareSuggestion={() => {
-          const el = document.getElementById("suggest");
-          if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
-        }}
-      />
-
+      <style dangerouslySetInnerHTML={{ __html: cardHoverStyles }} />
+      <Header />
+      <Hero />
+      
       <main style={styles.main}>
-        {/* Feature cards */}
+        {/* Enhanced Feature Cards with AOS animations */}
         <section style={styles.cardsSection}>
-          {/* Build Strength */}
-          <article
-            style={{
-              ...styles.card,
-              backgroundImage: `url(${Build})`,
-            }}
-            aria-label="Build Strength"
-          >
-            <div style={styles.cardOverlay} />
-            <div style={styles.cardContent}>
-              <h3 style={styles.cardTitle}>Build Strength</h3>
-              <p style={styles.cardText}>Push limits with structured sets, groups, and reps.</p>
-              <p style={styles.cardText}>Track every rep and watch strength grow.</p>
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              className="feature-card"
+              style={{
+                ...styles.card,
+                backgroundImage: `url(${feature.image})`,
+              }}
+              data-aos="fade-up"
+              data-aos-delay={index * 100}
+              data-aos-duration="800"
+            >
+              <div style={styles.cardOverlay}></div>
+              <div style={styles.cardContent}>
+                <h3 style={styles.cardTitle}>{feature.title}</h3>
+                <p style={styles.cardText}>{feature.description}</p>
+                {/* Future-proofing: Uncomment to add buttons */}
+                {/* 
+                <button className="card-button" style={styles.cardButton}>
+                  Learn More
+                </button>
+                */}
+              </div>
             </div>
-          </article>
-
-          {/* Goals */}
-          <article
-            style={{
-              ...styles.card,
-              backgroundImage: `url(${Goals})`,
-            }}
-            aria-label="Goals"
-          >
-            <div style={styles.cardOverlay} />
-            <div style={styles.cardContent}>
-              <h3 style={styles.cardTitle}>Goals</h3>
-              <p style={styles.cardText}>Set targets, keep streaks, and measure steady progress.</p>
-            </div>
-          </article>
-
-          {/* Community */}
-          <article
-            style={{
-              ...styles.card,
-              backgroundImage: `url(${Community})`,
-            }}
-            aria-label="Community"
-          >
-            <div style={styles.cardOverlay} />
-            <div style={styles.cardContent}>
-              <h3 style={styles.cardTitle}>Community</h3>
-              <p style={styles.cardText}>Share milestones and stay motivated together.</p>
-            </div>
-          </article>
+          ))}
         </section>
 
-        {/* Suggestion form */}
-        <section id="suggest" style={styles.suggestSection}>
+        {/* Suggestion Section with AOS animation */}
+        <section style={styles.suggestSection} data-aos="fade-up" data-aos-delay="200">
           <div style={styles.suggestHeader}>
-            <h2 style={styles.h2}>Suggest a feature</h2>
-            <p style={styles.suggestSub}>Keep it short and actionable—every idea helps improve HakbangQuest.</p>
+            <h2 style={styles.h2}>Share Your Suggestions</h2>
+            <p style={styles.suggestSub}>Help us improve HakbangQuest with your feedback</p>
           </div>
-
+          
           <div style={styles.formCard}>
             <div style={styles.formRow}>
               <div style={styles.inputGroup}>
-                <label htmlFor="name" style={styles.label}>Name</label>
+                <label style={styles.label}>Your Name</label>
                 <input
-                  id="name"
                   type="text"
-                  placeholder="Enter name"
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
                   style={styles.input}
+                  placeholder="Enter your name"
                 />
               </div>
             </div>
-
-            <div style={styles.formRow}>
-              <div style={{ ...styles.inputGroup, width: "100%" }}>
-                <label htmlFor="suggestion" style={styles.label}>Suggestion</label>
-                <textarea
-                  id="suggestion"
-                  placeholder="Share your idea…"
-                  rows={4}
-                  value={suggestion}
-                  onChange={(e) => setSuggestion(e.target.value)}
-                  style={{ ...styles.input, ...styles.textarea }}
-                />
-              </div>
+            
+            <div style={styles.inputGroup}>
+              <label style={styles.label}>Suggestion</label>
+              <textarea
+                value={suggestion}
+                onChange={(e) => setSuggestion(e.target.value)}
+                style={{...styles.input, ...styles.textarea}}
+                placeholder="Share your ideas or feedback..."
+              />
             </div>
-
+            
             <div style={styles.formActions}>
               <button
-                style={{ ...styles.primaryBtn }}
                 onClick={handleSubmitSuggestion}
                 disabled={isSubmitting}
-                aria-busy={isSubmitting}
+                style={styles.primaryBtn}
               >
-                {isSubmitting ? "Submitting…" : "Submit"}
+                {isSubmitting ? "Sending..." : "Submit Suggestion"}
               </button>
             </div>
           </div>
         </section>
 
-        {/* Admin table */}
+        {/* Admin Section */}
         {isAdmin && (
-          <section style={styles.adminSection}>
+          <section style={styles.adminSection} data-aos="fade-up" data-aos-delay="300">
             <div style={styles.sectionHead}>
-              <h2 style={styles.h2}>Suggestions</h2>
-              <span style={styles.badge}>Admin</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <h2 style={styles.h2}>Admin Panel</h2>
+                <span style={styles.badge}>Admin</span>
+              </div>
+              <button onClick={handleLogout} style={styles.secondaryBtn}>
+                Logout
+              </button>
             </div>
             <SuggestionScreen />
           </section>
         )}
-      </main>
 
-      {/* Admin Login Modal */}
-      {showLogin && !isAdmin && (
-        <div role="dialog" aria-modal="true" style={styles.modalOverlay}>
-          <div style={styles.modalCard}>
-            <div style={styles.modalHeader}>
-              <h3 style={styles.modalTitle}>Admin login</h3>
-              <button onClick={() => setShowLogin(false)} style={styles.modalClose}>×</button>
-            </div>
-            <div style={styles.modalBody}>
-              <div style={{ display: "grid", gap: 8 }}>
-                <label htmlFor="email" style={{ fontWeight: 700, color: "#0F172A" }}>Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  placeholder="admin@hakbang.com"
-                  value={loginEmail}
-                  onChange={(e) => setLoginEmail(e.target.value)}
-                  style={{
-                    background: "#fff",
-                    border: `1px solid ${COLORS.divider}`,
-                    borderRadius: 12,
-                    padding: isMobile ? "10px 11px" : "12px 12px",
-                    outline: "none",
-                    fontSize: isMobile ? 13.5 : 14,
-                  }}
-                />
+        {/* Login Modal */}
+        {showLogin && (
+          <div style={styles.modalOverlay} onClick={() => setShowLogin(false)}>
+            <div style={styles.modalCard} onClick={(e) => e.stopPropagation()}>
+              <div style={styles.modalHeader}>
+                <h3 style={styles.modalTitle}>Admin Login</h3>
+                <button
+                  style={styles.modalClose}
+                  onClick={() => setShowLogin(false)}
+                >
+                  ×
+                </button>
               </div>
-              <div style={{ display: "grid", gap: 8 }}>
-                <label htmlFor="password" style={{ fontWeight: 700, color: "#0F172A" }}>Password</label>
-                <input
-                  id="password"
-                  type="password"
-                  placeholder="••••••••"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
-                  style={{
-                    background: "#fff",
-                    border: `1px solid ${COLORS.divider}`,
-                    borderRadius: 12,
-                    padding: isMobile ? "10px 11px" : "12px 12px",
-                    outline: "none",
-                    fontSize: isMobile ? 13.5 : 14,
-                  }}
-                />
+              
+              <div style={styles.modalBody}>
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Email</label>
+                  <input
+                    type="email"
+                    value={loginEmail}
+                    onChange={(e) => setLoginEmail(e.target.value)}
+                    style={styles.input}
+                    placeholder="admin@hakbang.com"
+                  />
+                </div>
+                
+                <div style={styles.inputGroup}>
+                  <label style={styles.label}>Password</label>
+                  <input
+                    type="password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    style={styles.input}
+                    placeholder="Enter password"
+                  />
+                </div>
               </div>
-            </div>
-            <div style={styles.modalFooter}>
-              <button onClick={() => setShowLogin(false)} style={styles.secondaryBtn}>Cancel</button>
-              <button onClick={handleLogin} style={styles.primaryBtn}>Login</button>
+              
+              <div style={styles.modalFooter}>
+                <button
+                  onClick={() => setShowLogin(false)}
+                  style={styles.secondaryBtn}
+                >
+                  Cancel
+                </button>
+                <button onClick={handleLogin} style={styles.primaryBtn}>
+                  Login
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
-
-      <ToastContainer position={isMobile ? "top-center" : "top-right"} />
+        )}
+      </main>
+      
+      <ToastContainer />
     </div>
   );
 }
