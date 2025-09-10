@@ -36,7 +36,13 @@ const COLORS = {
 
 const TRANSITION = "180ms ease";
 
-function Header({ isAdmin, onLogout, onLoginToggle, onInstall, isInstalling = false }) {
+function Header({
+  isAdmin,
+  onLogout,
+  onLoginToggle,
+  onInstall,
+  isInstalling = false,
+}) {
   // Breakpoints
   const isTablet = useMediaQuery("(max-width: 768px)");
   const isMobile = useMediaQuery("(max-width: 480px)");
@@ -52,7 +58,11 @@ function Header({ isAdmin, onLogout, onLoginToggle, onInstall, isInstalling = fa
     },
     stickyHeader: {
       ...styles.stickyHeader,
-      padding: isMobile ? "0.6rem 0.75rem" : isTablet ? "0.8rem 0.9rem" : "1rem 1rem",
+      padding: isMobile
+        ? "0.6rem 0.75rem"
+        : isTablet
+        ? "0.8rem 0.9rem"
+        : "1rem 1rem",
     },
     brand: {
       ...styles.brand,
@@ -84,7 +94,11 @@ function Header({ isAdmin, onLogout, onLoginToggle, onInstall, isInstalling = fa
     },
     ctaButton: {
       ...styles.ctaButton,
-      padding: isMobile ? "0.5rem 0.9rem" : isTablet ? "0.55rem 1rem" : "0.6rem 1.2rem",
+      padding: isMobile
+        ? "0.5rem 0.9rem"
+        : isTablet
+        ? "0.55rem 1rem"
+        : "0.6rem 1.2rem",
       fontSize: isMobile ? "0.9rem" : "0.95rem",
       // Hover styles
       boxShadow: hoverCTA
@@ -101,8 +115,16 @@ function Header({ isAdmin, onLogout, onLoginToggle, onInstall, isInstalling = fa
     <header style={responsiveStyles.headerWrapper}>
       <div style={responsiveStyles.stickyHeader}>
         <div style={responsiveStyles.brand}>
-          <img src={icon} alt="HakbangQuest" style={responsiveStyles.brandIcon} loading="lazy" />
-          <span style={responsiveStyles.brandName}>HakbangQuest</span>
+          <img
+            src={icon}
+            alt="HakbangQuest"
+            style={responsiveStyles.brandIcon}
+            loading="lazy"
+          />
+          <span style={responsiveStyles.brandName}>
+            <span style={{ color: "#4361EE" }}>Hakbang</span>
+            <span style={{ color: "#FFC107" }}>Quest</span>
+          </span>
         </div>
 
         <div style={responsiveStyles.headerActions}>
@@ -158,7 +180,12 @@ const styles = {
   },
   brand: { display: "flex", alignItems: "center", gap: "0.5rem" },
   brandIcon: { width: 28, height: 28, borderRadius: 6 },
-  brandName: { fontSize: "1.05rem", fontWeight: 800, color: "#0F172A", letterSpacing: 0.2 },
+  brandName: {
+    fontSize: "1.05rem",
+    fontWeight: 800,
+    color: "#0F172A",
+    letterSpacing: 0.2,
+  },
 
   headerActions: { display: "flex", gap: "0.75rem", alignItems: "center" },
   ghostButton: {
