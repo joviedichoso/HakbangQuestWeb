@@ -106,12 +106,8 @@ function DashboardScreen() {
 
   const handleDownloadAPK = () => {
     setIsDownloading(true);
-<<<<<<< HEAD
-    const apkUrl = "https://github.com/joviedichoso/HakbangQuestWeb/releases/download/v1.0.0/HakbangQuest.apk";
-=======
     const apkUrl =
       "https://github.com/joviedichoso/HakbangQuest02/releases/download/v1.0.1/HakbangQuest.apk";
->>>>>>> updateWeb
     const link = document.createElement("a");
     link.href = apkUrl;
     link.download = "HakbangQuest.apk";
