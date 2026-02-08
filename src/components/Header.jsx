@@ -1,28 +1,31 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import icon from "../../src/assets/image/icon.png";
 
-// Small, reusable media query hook using matchMedia
+// Reusable media query hook
 function useMediaQuery(query) {
-  const [matches, setMatches] = React.useState(() => {
+  const [matches, setMatches] = useState(() => {
     if (typeof window === "undefined") return false;
     return window.matchMedia(query).matches;
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
     if (typeof window === "undefined") return;
     const mql = window.matchMedia(query);
-    // Set initial
-    setMatches(mql.matches);
-
     const handler = (e) => setMatches(e.matches);
-    // Modern API
-    mql.addEventListener?.("change", handler);
-    // Fallback for older browsers
-    mql.addListener?.(handler);
+
+    // Modern vs Legacy listener support
+    if (mql.addEventListener) {
+      mql.addEventListener("change", handler);
+    } else {
+      mql.addListener(handler);
+    }
 
     return () => {
-      mql.removeEventListener?.("change", handler);
-      mql.removeListener?.(handler);
+      if (mql.removeEventListener) {
+        mql.removeEventListener("change", handler);
+      } else {
+        mql.removeListener(handler);
+      }
     };
   }, [query]);
 
@@ -31,10 +34,11 @@ function useMediaQuery(query) {
 
 const COLORS = {
   blue: "#4361EE",
+  blueHover: "#3a55d6",
   yellow: "#FFC107",
+  text: "#0F172A",
+  border: "rgba(15, 23, 42, 0.08)",
 };
-
-const TRANSITION = "180ms ease";
 
 function Header({
   isAdmin,
@@ -43,172 +47,162 @@ function Header({
   onInstall,
   isInstalling = false,
 }) {
-  // Breakpoints
-  const isTablet = useMediaQuery("(max-width: 768px)");
+  const [isScrolled, setIsScrolled] = useState(false);
   const isMobile = useMediaQuery("(max-width: 480px)");
 
-  // Local hover state for inline hover effects
-  const [hoverGhost, setHoverGhost] = React.useState(false);
-  const [hoverCTA, setHoverCTA] = React.useState(false);
-
-  // Responsive computed styles derived from base styles
-  const responsiveStyles = {
-    headerWrapper: {
-      ...styles.headerWrapper,
-    },
-    stickyHeader: {
-      ...styles.stickyHeader,
-      padding: isMobile
-        ? "0.6rem 0.75rem"
-        : isTablet
-        ? "0.8rem 0.9rem"
-        : "1rem 1rem",
-    },
-    brand: {
-      ...styles.brand,
-      gap: isMobile ? "0.4rem" : "0.5rem",
-    },
-    brandIcon: {
-      ...styles.brandIcon,
-      width: isMobile ? 24 : 50,
-      height: isMobile ? 24 : 50,
-      borderRadius: 6,
-    },
-    brandName: {
-      ...styles.brandName,
-      fontSize: isMobile ? "0.95rem" : isTablet ? "1rem" : "1.05rem",
-      display: isMobile ? "none" : "inline",
-    },
-    headerActions: {
-      ...styles.headerActions,
-      gap: isMobile ? "0.5rem" : isTablet ? "0.65rem" : "0.75rem",
-    },
-    ghostButton: {
-      ...styles.ghostButton,
-      padding: isMobile ? "0.4rem 0.75rem" : "0.5rem 1rem",
-      fontSize: isMobile ? "0.85rem" : "0.9rem",
-      // Hover styles
-      background: hoverGhost ? "rgba(15,23,42,0.04)" : "transparent",
-      borderColor: hoverGhost ? "rgba(15,23,42,0.22)" : "rgba(15,23,42,0.12)",
-      transform: hoverGhost ? "translateY(-1px)" : "none",
-    },
-    ctaButton: {
-      ...styles.ctaButton,
-      padding: isMobile
-        ? "0.5rem 0.9rem"
-        : isTablet
-        ? "0.55rem 1rem"
-        : "0.6rem 1.2rem",
-      fontSize: isMobile ? "0.9rem" : "0.95rem",
-      // Hover styles
-      boxShadow: hoverCTA
-        ? "0 10px 22px rgba(67,97,238,0.45)"
-        : isMobile
-        ? "0 4px 12px rgba(67,97,238,0.30)"
-        : "0 6px 16px rgba(67,97,238,0.35)",
-      transform: hoverCTA ? "translateY(-1px)" : "none",
-      opacity: isInstalling ? 0.8 : 1,
-    },
-  };
+  // Handle scroll effect for glassmorphism
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 20);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <header style={responsiveStyles.headerWrapper}>
-      <div style={responsiveStyles.stickyHeader}>
-        <div style={responsiveStyles.brand}>
-          <img
-            src={icon}
-            alt="HakbangQuest"
-            style={responsiveStyles.brandIcon}
-            loading="lazy"
-          />
-          <span style={responsiveStyles.brandName}>
-            <span style={{ color: "#4361EE" }}>Hakbang</span>
-            <span style={{ color: "#FFC107" }}>Quest</span>
-          </span>
+    <header
+      style={{
+        ...styles.header,
+        background: isScrolled
+          ? "rgba(255, 255, 255, 0.85)"
+          : "rgba(255, 255, 255, 0.6)",
+        backdropFilter: "blur(12px)",
+        borderBottom: isScrolled
+          ? `1px solid ${COLORS.border}`
+          : "1px solid transparent",
+        padding: isScrolled ? "12px 24px" : "20px 24px",
+        boxShadow: isScrolled
+          ? "0 4px 20px -2px rgba(0, 0, 0, 0.05)"
+          : "none",
+      }}
+    >
+      <div style={styles.container}>
+        {/* Brand Section */}
+        <div style={styles.brand}>
+          <img src={icon} alt="Logo" style={styles.logo} />
+          <div style={styles.brandText}>
+            <span style={{ color: COLORS.blue }}>Hakbang</span>
+            <span style={{ color: COLORS.yellow }}>Quest</span>
+          </div>
         </div>
 
-        <div style={responsiveStyles.headerActions}>
-          {!isAdmin ? (
-            <button
-              style={responsiveStyles.ghostButton}
-              onClick={onLoginToggle}
-              onMouseEnter={() => setHoverGhost(true)}
-              onMouseLeave={() => setHoverGhost(false)}
-            >
-              Admin Login
-            </button>
-          ) : (
-            <button
-              style={responsiveStyles.ghostButton}
-              onClick={onLogout}
-              onMouseEnter={() => setHoverGhost(true)}
-              onMouseLeave={() => setHoverGhost(false)}
-            >
-              Logout
-            </button>
-          )}
-          <button
-            style={responsiveStyles.ctaButton}
+        {/* Actions Section */}
+        <div style={styles.actions}>
+          {/* Admin / Logout Button */}
+          <NavButton
+            onClick={isAdmin ? onLogout : onLoginToggle}
+            label={isAdmin ? "Log Out" : "Admin"}
+            variant="ghost"
+          />
+
+          {/* Install App Button (CTA) */}
+          <NavButton
             onClick={onInstall}
+            label={isInstalling ? "Installing..." : "Install App"}
+            variant="primary"
             disabled={isInstalling}
-            aria-busy={isInstalling}
-            onMouseEnter={() => setHoverCTA(true)}
-            onMouseLeave={() => setHoverCTA(false)}
-          >
-            {isInstalling ? "Downloading…" : "Install Android App"}
-          </button>
+          />
         </div>
       </div>
     </header>
   );
 }
 
+// Sub-component for Buttons to keep JSX clean
+const NavButton = ({ onClick, label, variant, disabled, icon }) => {
+  const [hover, setHover] = useState(false);
+
+  const baseStyle = {
+    ...styles.buttonBase,
+    ...(variant === "primary" ? styles.primaryBtn : styles.ghostBtn),
+    opacity: disabled ? 0.7 : 1,
+    cursor: disabled ? "wait" : "pointer",
+    transform: hover && !disabled ? "translateY(-1px)" : "none",
+    boxShadow:
+      hover && variant === "primary" && !disabled
+        ? "0 6px 12px rgba(67, 97, 238, 0.3)"
+        : "none",
+    background:
+      variant === "ghost" && hover
+        ? "rgba(15, 23, 42, 0.05)"
+        : variant === "primary" && hover
+          ? COLORS.blueHover
+          : variant === "primary"
+            ? COLORS.blue
+            : "transparent",
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      disabled={disabled}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={baseStyle}
+    >
+      {icon && <span style={{ marginRight: 6 }}>{icon}</span>}
+      {label}
+    </button>
+  );
+};
+
 const styles = {
-  headerWrapper: {
+  header: {
     position: "sticky",
     top: 0,
-    zIndex: 50,
+    zIndex: 100,
+    width: "100%",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    boxSizing: "border-box", // Essential for padding transitions
   },
-  stickyHeader: {
+  container: {
+    maxWidth: "1200px",
+    margin: "0 auto",
     display: "flex",
     alignItems: "center",
     justifyContent: "space-between",
-    padding: "1rem 1rem",
-    background: "rgba(255, 255, 255, 0.8)",
-    backdropFilter: "blur(10px)",
-    borderBottom: "1px solid rgba(15,23,42,0.08)",
   },
-  brand: { display: "flex", alignItems: "center", gap: "0.5rem" },
-  brandIcon: { width: 28, height: 28, borderRadius: 6 },
-  brandName: {
-    fontSize: "1.05rem",
-    fontWeight: 800,
-    color: "#0F172A",
-    letterSpacing: 0.2,
+  brand: {
+    display: "flex",
+    alignItems: "center",
+    gap: "10px",
+    cursor: "default",
   },
-
-  headerActions: { display: "flex", gap: "0.75rem", alignItems: "center" },
-  ghostButton: {
-    padding: "0.5rem 1rem",
-    borderRadius: 10,
-    border: "1px solid rgba(15,23,42,0.12)",
-    background: "transparent",
-    color: "#0F172A",
-    cursor: "pointer",
-    transition: `transform ${TRANSITION}, box-shadow ${TRANSITION}, background ${TRANSITION}, border-color ${TRANSITION}`,
-    fontSize: "0.9rem",
+  logo: {
+    width: "36px",
+    height: "36px",
+    borderRadius: "10px",
+    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
   },
-  ctaButton: {
-    padding: "0.6rem 1.2rem",
-    borderRadius: 12,
-    background: COLORS.blue,
-    color: "white",
-    fontWeight: 700,
+  brandText: {
+    fontSize: "20px",
+    fontWeight: "900",
+    letterSpacing: "-0.5px",
+    userSelect: "none",
+  },
+  actions: {
+    display: "flex",
+    alignItems: "center",
+    gap: "12px",
+  },
+  buttonBase: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    fontSize: "14px",
+    fontWeight: "700",
     border: "none",
-    cursor: "pointer",
-    transition: `transform ${TRANSITION}, box-shadow ${TRANSITION}, opacity ${TRANSITION}`,
-    boxShadow: "0 6px 16px rgba(67,97,238,0.35)",
-    fontSize: "0.95rem",
+    borderRadius: "12px",
+    padding: "10px 16px",
+    transition: "all 0.2s ease",
+  },
+  primaryBtn: {
+    color: "#FFFFFF",
+    background: COLORS.blue,
+  },
+  ghostBtn: {
+    color: COLORS.text,
+    background: "transparent",
   },
 };
 

@@ -1,245 +1,264 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useState, useMemo, useRef } from "react";
+// Ensure this path matches your project structure based on the previous file
 import backgroundImage from "../../src/assets/image/jogging.jpg";
 
 const COLORS = {
   blue: "#4361EE",
   blueHover: "#3a55d6",
-  blueActive: "#3249b9",
   yellow: "#FFC107",
   pink: "#FF4D6D",
-  textLight: "#E5E7EB",
+  textLight: "#F1F5F9", // Slate-100
   white: "#FFFFFF",
 };
 
-const TRANSITION = "180ms ease";
-
-// Inject gradient text styles once
-if (typeof document !== "undefined" && !document.getElementById("hkq-animated-gradient-text")) {
+// Inject animations and global styles for this component
+if (typeof document !== "undefined" && !document.getElementById("hkq-hero-styles")) {
   const styleEl = document.createElement("style");
-  styleEl.id = "hkq-animated-gradient-text";
+  styleEl.id = "hkq-hero-styles";
   styleEl.textContent = `
     .hkq-gradient-text {
-      background-image: linear-gradient(90deg, ${COLORS.blue}, ${COLORS.yellow}, ${COLORS.pink}, ${COLORS.blue});
-      background-size: 300% 100%;
+      background: linear-gradient(to right, ${COLORS.blue}, ${COLORS.yellow}, ${COLORS.pink}, ${COLORS.blue});
+      background-size: 300% auto;
       background-clip: text;
       -webkit-background-clip: text;
       color: transparent;
       -webkit-text-fill-color: transparent;
-      animation: hkq-move-gradient 10s ease-in-out infinite;
-      transition: opacity 0.6s ease;
+      animation: hkq-gradient 8s linear infinite;
     }
 
-    @keyframes hkq-move-gradient {
-      0%   { background-position: 0% 50%; }
-      50%  { background-position: 100% 50%; }
-      100% { background-position: 0% 50%; }
+    @keyframes hkq-gradient {
+      0% { background-position: 0% 50%; }
+      100% { background-position: 300% 50%; }
     }
 
-    @media (prefers-reduced-motion: reduce) {
-      .hkq-gradient-text {
-        animation: hkq-move-gradient 20s linear infinite;
-      }
+    @keyframes hkq-fade-up {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .hkq-animate-entry {
+      animation: hkq-fade-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
     }
   `;
   document.head.appendChild(styleEl);
 }
 
-function Hero({ onGetApp, onShareSuggestion }) {
-  // Buttons hover states
-  const [primaryState, setPrimaryState] = useState("idle");
-  const [linkState, setLinkState] = useState("idle");
+const Hero = ({ onGetApp, onShareSuggestion }) => {
+  const [scrollY, setScrollY] = useState(0);
+  const [wordIndex, setWordIndex] = useState(0);
 
-  // Rotating words
   const words = useMemo(
-    () => ["level up your journey.", "push your limits.", "celebrate progress."],
+    () => ["Level Up Your Journey", "Push Your Limits", "Celebrate Progress"],
     []
   );
-  const [current, setCurrent] = useState(0);
 
+  // Text Rotation Logic
   useEffect(() => {
     const interval = setInterval(() => {
-      setCurrent((prev) => (prev + 1) % words.length);
-    }, 3500);
+      setWordIndex((prev) => (prev + 1) % words.length);
+    }, 3000);
     return () => clearInterval(interval);
   }, [words.length]);
 
-  // Parallax: subtle translateY on the background image
-  const imageRef = useRef(null);
-  const prefersReduced = useMemo(
-    () =>
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(prefers-reduced-motion: reduce)").matches,
-    []
-  );
-
+  // Parallax Logic
   useEffect(() => {
-    if (prefersReduced) return;
-    const el = imageRef.current;
-    if (!el) return;
-
-    let ticking = false;
-
-    const onScroll = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const scrolled = window.scrollY || window.pageYOffset || 0;
-        // Subtle mapping: 0.06 factor, clamp to ±18px
-        const shift = Math.max(-18, Math.min(18, scrolled * 0.06));
-        el.style.transform = `translateY(${shift}px) scale(1.03)`;
-        el.style.willChange = "transform";
-        ticking = false;
-      });
-    };
-
-    onScroll(); // initial
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, [prefersReduced]);
-
-  const primaryStyles = getPrimaryBtnStyles(primaryState);
-  const linkStyles = getLinkBtnStyles(linkState);
+    const handleScroll = () => requestAnimationFrame(() => setScrollY(window.scrollY));
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
 
   return (
-    <section style={styles.hero} aria-label="HakbangQuest introduction">
-      <div style={styles.bg} />
-      <div style={styles.content}>
-        <h1 style={styles.h1}>
-          Track distance, build strength,{" "}
-          <span className="hkq-gradient-text" style={styles.h1AccentAnimated}>
-            {words[current]}
-          </span>
-        </h1>
-        <p style={styles.subtitle}>
-          From running and cycling to push-ups and beyond—HakbangQuest keeps progress simple, minimal, and motivating.
-        </p>
-        <div style={styles.actions}>
-          <button
-            style={primaryStyles}
-            onClick={onGetApp}
-            onMouseEnter={() => setPrimaryState("hover")}
-            onMouseLeave={() => setPrimaryState("idle")}
-            onMouseDown={() => setPrimaryState("active")}
-            onMouseUp={() => setPrimaryState("hover")}
-          >
-            Get the App
-          </button>
-          <button
-            style={linkStyles}
-            onClick={onShareSuggestion}
-            onMouseEnter={() => setLinkState("hover")}
-            onMouseLeave={() => setLinkState("idle")}
-            onMouseDown={() => setLinkState("active")}
-            onMouseUp={() => setLinkState("hover")}
-          >
-            Share a suggestion →
-          </button>
+    <section style={styles.heroWrapper} aria-label="HakbangQuest Hero">
+      {/* Background Image with Parallax */}
+      <div
+        style={{
+          ...styles.bgImage,
+          backgroundImage: `url(${backgroundImage})`,
+          transform: `translateY(${scrollY * 0.4}px) scale(1.1)`, // Parallax effect
+        }}
+      />
+
+      {/* Gradient Overlay for Readability */}
+      <div style={styles.overlay} />
+
+      {/* Content Container */}
+      <div style={styles.container}>
+        <div className="hkq-animate-entry" style={styles.content}>
+          <div style={styles.badge}>
+            <span style={{ marginRight: 6 }}></span> FITNESS GAMIFIED
+          </div>
+
+          <h1 style={styles.title}>
+            Track distance, <br />
+            build strength, <br />
+            <span className="hkq-gradient-text" style={styles.gradientText}>
+              {words[wordIndex]}.
+            </span>
+          </h1>
+
+          <p style={styles.subtitle}>
+            From running and cycling to push-ups and beyond—HakbangQuest keeps
+            your progress simple, minimal, and motivating.
+          </p>
+
+          <div style={styles.buttonGroup}>
+            <PrimaryButton onClick={onGetApp}>
+              Get the App
+            </PrimaryButton>
+            <SecondaryButton onClick={onShareSuggestion}>
+              Share a Suggestion
+            </SecondaryButton>
+          </div>
         </div>
       </div>
-
-      <div
-        ref={imageRef}
-        style={{
-          ...styles.image,
-          backgroundImage: `linear-gradient(180deg, rgba(0,0,0,0.55), rgba(0,0,0,0.55)), url(${backgroundImage})`,
-        }}
-        aria-hidden="true"
-      />
     </section>
   );
-}
+};
 
-function getPrimaryBtnStyles(state) {
-  const base = {
-    background: COLORS.blue,
-    color: COLORS.white,
-    padding: "12px 16px",
-    borderRadius: 12,
-    border: "none",
-    fontWeight: 800,
-    cursor: "pointer",
-    transition: TRANSITION,
-    boxShadow: "0 6px 16px rgba(67,97,238,0.35)",
-  };
-  if (state === "hover") return { ...base, background: COLORS.blueHover };
-  if (state === "active") return { ...base, background: COLORS.blueActive };
-  return base;
-}
+// --- Sub-Components for Clean Code ---
 
-function getLinkBtnStyles(state) {
-  const base = {
-    background: "rgba(255,255,255,0.06)",
-    color: COLORS.white,
-    padding: "10px 12px",
-    borderRadius: 12,
-    border: "1px solid rgba(229,231,235,0.25)",
-    fontWeight: 700,
-    cursor: "pointer",
-    transition: TRANSITION,
-    backdropFilter: "blur(2px)",
-  };
-  if (state === "hover") return { ...base, background: "rgba(255,255,255,0.12)" };
-  if (state === "active") return { ...base, background: "rgba(255,255,255,0.10)" };
-  return base;
-}
+const PrimaryButton = ({ children, onClick }) => {
+  const [hover, setHover] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        ...styles.btnBase,
+        ...styles.btnPrimary,
+        transform: hover ? "translateY(-2px)" : "translateY(0)",
+        boxShadow: hover ? "0 10px 25px -5px rgba(67, 97, 238, 0.5)" : "0 4px 6px -1px rgba(0,0,0,0.1)",
+      }}
+    >
+      {children}
+    </button>
+  );
+};
+
+const SecondaryButton = ({ children, onClick }) => {
+  const [hover, setHover] = useState(false);
+  return (
+    <button
+      onClick={onClick}
+      onMouseEnter={() => setHover(true)}
+      onMouseLeave={() => setHover(false)}
+      style={{
+        ...styles.btnBase,
+        ...styles.btnSecondary,
+        background: hover ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.1)",
+        transform: hover ? "translateY(-2px)" : "translateY(0)",
+      }}
+    >
+      {children}
+    </button>
+  );
+};
+
+// --- Styles Object ---
 
 const styles = {
-  hero: {
+  heroWrapper: {
     position: "relative",
-    width: "100%",
-    minHeight: "74vh",
-    display: "grid",
-    placeItems: "center",
-    overflow: "hidden",
-  },
-  bg: {
-    position: "absolute",
-    inset: 0,
-    background:
-      "radial-gradient(80% 60% at 50% 20%, rgba(67,97,238,0.12) 0%, rgba(255,193,7,0.08) 35%, rgba(0,0,0,0) 70%)",
-    pointerEvents: "none",
-  },
-  image: {
-    position: "absolute",
-    inset: 0,
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    transform: "scale(1.03)", // base scale; parallax adds translateY
-  },
-  content: {
-    position: "relative",
-    zIndex: 1,
-    maxWidth: 880,
-    padding: "48px 16px",
-    textAlign: "center",
-    color: "#fff",
-    display: "grid",
-    gap: 16,
-  },
-  h1: {
-    margin: 0,
-    fontSize: "clamp(30px, 6vw, 56px)",
-    fontWeight: 900,
-    lineHeight: 1.1,
-  },
-  h1AccentAnimated: {
-    display: "inline-block",
-  },
-  subtitle: {
-    margin: "8px auto 0",
-    maxWidth: 720,
-    color: COLORS.textLight,
-    fontSize: "clamp(15px, 2.4vw, 18px)",
-    lineHeight: 1.6,
-  },
-  actions: {
+    height: "85vh",
+    minHeight: "600px",
     display: "flex",
-    gap: 12,
     alignItems: "center",
     justifyContent: "center",
+    overflow: "hidden",
+    color: COLORS.white,
+  },
+  bgImage: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    width: "100%",
+    height: "100%",
+    backgroundSize: "cover",
+    backgroundPosition: "center",
+    willChange: "transform",
+    zIndex: 0,
+  },
+  overlay: {
+    position: "absolute",
+    inset: 0,
+    background: "linear-gradient(180deg, rgba(15, 23, 42, 0.4) 0%, rgba(15, 23, 42, 0.7) 60%, rgba(15, 23, 42, 0.95) 100%)",
+    zIndex: 1,
+  },
+  container: {
+    position: "relative",
+    zIndex: 10,
+    width: "100%",
+    maxWidth: "1200px",
+    padding: "0 24px",
+    margin: "0 auto",
+  },
+  content: {
+    maxWidth: "800px",
+    display: "flex",
+    flexDirection: "column",
+    gap: "24px",
+    justifyContent: "center",
+  },
+  badge: {
+    display: "inline-flex",
+    alignItems: "center",
+    background: "rgba(255, 255, 255, 0.1)",
+    backdropFilter: "blur(4px)",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+    padding: "8px 16px",
+    borderRadius: "100px",
+    fontSize: "13px",
+    fontWeight: "700",
+    letterSpacing: "1px",
+    width: "fit-content",
+    color: "#E2E8F0",
+  },
+  title: {
+    fontSize: "clamp(40px, 6vw, 72px)",
+    fontWeight: "900",
+    lineHeight: 1.1,
+    letterSpacing: "-0.02em",
+    margin: 0,
+  },
+  gradientText: {
+    display: "block",
+    marginTop: "8px",
+  },
+  subtitle: {
+    fontSize: "clamp(16px, 2vw, 20px)",
+    lineHeight: 1.6,
+    color: COLORS.textLight,
+    maxWidth: "600px",
+    margin: 0,
+  },
+  buttonGroup: {
+    display: "flex",
     flexWrap: "wrap",
-    marginTop: 6,
+    gap: "16px",
+    marginTop: "16px",
+  },
+  btnBase: {
+    padding: "16px 32px",
+    fontSize: "16px",
+    fontWeight: "700",
+    borderRadius: "14px",
+    cursor: "pointer",
+    border: "none",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+    display: "inline-flex",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  btnPrimary: {
+    background: COLORS.blue,
+    color: COLORS.white,
+  },
+  btnSecondary: {
+    background: "rgba(255, 255, 255, 0.1)",
+    backdropFilter: "blur(10px)",
+    border: "1px solid rgba(255, 255, 255, 0.2)",
+    color: COLORS.white,
   },
 };
 
