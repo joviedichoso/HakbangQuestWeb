@@ -56,7 +56,7 @@ const Hero = ({ onGetApp, onShareSuggestion }) => {
   const [wordIndex, setWordIndex] = useState(0);
 
   const words = useMemo(
-    () => ["Level Up Your Life", "Push Your Limits", "Celebrate Progress"],
+    () => ["Level Up Your Life", "Push Your Limits", "Boy, You Win"],
     []
   );
 
