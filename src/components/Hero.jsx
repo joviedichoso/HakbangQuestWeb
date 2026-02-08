@@ -1,58 +1,65 @@
-import React, { useEffect, useState, useMemo, useRef } from "react";
-// Ensure this path matches your project structure based on the previous file
-import backgroundImage from "../../src/assets/image/jogging.jpg";
+import React, { useEffect, useState, useMemo } from "react";
+import { IoDownloadOutline } from "react-icons/io5";
+import appMockup from "../assets/image/168shots_so.png";
 
-const COLORS = {
-  blue: "#4361EE",
-  blueHover: "#3a55d6",
-  yellow: "#FFC107",
-  pink: "#FF4D6D",
-  textLight: "#F1F5F9", // Slate-100
-  white: "#FFFFFF",
-};
-
-// Inject animations and global styles for this component
-if (typeof document !== "undefined" && !document.getElementById("hkq-hero-styles")) {
-  const styleEl = document.createElement("style");
-  styleEl.id = "hkq-hero-styles";
-  styleEl.textContent = `
-    .hkq-gradient-text {
-      background: linear-gradient(to right, ${COLORS.blue}, ${COLORS.yellow}, ${COLORS.pink}, ${COLORS.blue});
-      background-size: 300% auto;
-      background-clip: text;
-      -webkit-background-clip: text;
-      color: transparent;
-      -webkit-text-fill-color: transparent;
-      animation: hkq-gradient 8s linear infinite;
-    }
-
-    @keyframes hkq-gradient {
-      0% { background-position: 0% 50%; }
-      100% { background-position: 300% 50%; }
-    }
-
-    @keyframes hkq-fade-up {
-      from { opacity: 0; transform: translateY(20px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .hkq-animate-entry {
-      animation: hkq-fade-up 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
-    }
-  `;
-  document.head.appendChild(styleEl);
-}
+// Inject custom animations
+const heroStyles = `
+  @keyframes float {
+    0% { transform: translateY(0px); }
+    50% { transform: translateY(-15px); }
+    100% { transform: translateY(0px); }
+  }
+  @keyframes gradientText {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+  }
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes textSlideUp {
+    0% { opacity: 0; transform: translateY(20px); }
+    100% { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes blob {
+    0% { transform: translate(0px, 0px) scale(1); }
+    33% { transform: translate(30px, -50px) scale(1.1); }
+    66% { transform: translate(-20px, 20px) scale(0.9); }
+    100% { transform: translate(0px, 0px) scale(1); }
+  }
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+  .animate-gradient-text {
+    background-size: 200%;
+    animation: gradientText 4s ease infinite;
+  }
+  .animate-fade-up {
+    animation: fadeUp 0.8s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+  .animate-text-change {
+    animation: textSlideUp 0.6s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  }
+  .animate-blob {
+    animation: blob 10s infinite;
+  }
+  .animation-delay-2000 {
+    animation-delay: 2s;
+  }
+  .animation-delay-4000 {
+    animation-delay: 4s;
+  }
+`;
 
 const Hero = ({ onGetApp, onShareSuggestion }) => {
-  const [scrollY, setScrollY] = useState(0);
   const [wordIndex, setWordIndex] = useState(0);
 
   const words = useMemo(
-    () => ["Level Up Your Journey", "Push Your Limits", "Celebrate Progress"],
+    () => ["Level Up Your Life", "Push Your Limits", "Celebrate Progress"],
     []
   );
 
-  // Text Rotation Logic
   useEffect(() => {
     const interval = setInterval(() => {
       setWordIndex((prev) => (prev + 1) % words.length);
@@ -60,206 +67,82 @@ const Hero = ({ onGetApp, onShareSuggestion }) => {
     return () => clearInterval(interval);
   }, [words.length]);
 
-  // Parallax Logic
-  useEffect(() => {
-    const handleScroll = () => requestAnimationFrame(() => setScrollY(window.scrollY));
-    window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   return (
-    <section style={styles.heroWrapper} aria-label="HakbangQuest Hero">
-      {/* Background Image with Parallax */}
-      <div
-        style={{
-          ...styles.bgImage,
-          backgroundImage: `url(${backgroundImage})`,
-          transform: `translateY(${scrollY * 0.4}px) scale(1.1)`, // Parallax effect
-        }}
-      />
+    // FIXED: Reduced min-height logic and padding to fit better on mobile screens
+    <section className="relative min-h-[90vh] flex items-center pt-28 pb-12 lg:py-20 overflow-hidden bg-white dark:bg-slate-950 transition-colors duration-300">
+      <style>{heroStyles}</style>
 
-      {/* Gradient Overlay for Readability */}
-      <div style={styles.overlay} />
+      {/* --- Background Blobs --- */}
+      <div className="absolute inset-0 w-full h-full overflow-hidden pointer-events-none">
+        <div className="absolute -top-[10%] -left-[10%] w-[20rem] md:w-[40rem] h-[20rem] md:h-[40rem] bg-blue-400/20 rounded-full mix-blend-multiply filter blur-[60px] md:blur-[80px] opacity-40 animate-blob dark:bg-blue-600/10"></div>
+        <div className="absolute top-[10%] -right-[10%] w-[18rem] md:w-[35rem] h-[18rem] md:h-[35rem] bg-yellow-400/20 rounded-full mix-blend-multiply filter blur-[60px] md:blur-[80px] opacity-40 animate-blob animation-delay-2000 dark:bg-yellow-600/10"></div>
+        <div className="absolute -bottom-[20%] left-[20%] w-[22rem] md:w-[45rem] h-[22rem] md:h-[45rem] bg-pink-400/20 rounded-full mix-blend-multiply filter blur-[60px] md:blur-[80px] opacity-40 animate-blob animation-delay-4000 dark:bg-pink-600/10"></div>
+      </div>
 
-      {/* Content Container */}
-      <div style={styles.container}>
-        <div className="hkq-animate-entry" style={styles.content}>
-          <div style={styles.badge}>
-            <span style={{ marginRight: 6 }}></span> FITNESS GAMIFIED
+      <div className="container mx-auto px-6 max-w-7xl relative z-10">
+        <div className="flex flex-col lg:flex-row items-center gap-8 lg:gap-16">
+
+          {/* --- Left Column: Text Content --- */}
+          <div className="flex-1 text-center lg:text-left animate-fade-up max-w-2xl z-20">
+            <div className="inline-flex items-center gap-2 bg-blue-50 dark:bg-blue-900/30 border border-blue-100 dark:border-blue-800 px-4 py-1.5 rounded-full text-xs font-bold tracking-widest text-blue-600 dark:text-blue-300 uppercase w-fit mb-6 mx-auto lg:mx-0">
+              <span className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></span>
+              Fitness Gamified
+            </div>
+
+            <h1 className="text-4xl md:text-5xl lg:text-6xl font-extrabold leading-[1.1] tracking-tight text-slate-900 dark:text-white mb-6">
+              Track distance, <br />
+              build strength, <br />
+
+              <div className="h-[1.5em] relative overflow-visible pb-2">
+                <span
+                  key={wordIndex}
+                  className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-500 to-pink-500 animate-gradient-text animate-text-change block pb-1"
+                >
+                  {words[wordIndex]}.
+                </span>
+              </div>
+            </h1>
+
+            <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 max-w-lg leading-relaxed mb-8 mx-auto lg:mx-0">
+              HakbangQuest isn't just a tracker—it's an adventure. Turn your daily steps into quests and your workouts into victories.
+            </p>
+
+            <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+              <button
+                onClick={onGetApp}
+                className="px-8 py-3.5 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all duration-300 hover:-translate-y-1 shadow-lg shadow-blue-600/30 flex items-center gap-3"
+              >
+                <IoDownloadOutline size={22} />
+                <span>Get the App</span>
+              </button>
+              <button
+                onClick={onShareSuggestion}
+                className="px-8 py-3.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 text-slate-700 dark:text-white font-bold rounded-2xl transition-all duration-300 hover:-translate-y-1 shadow-sm"
+              >
+                Share Feedback
+              </button>
+            </div>
           </div>
 
-          <h1 style={styles.title}>
-            Track distance, <br />
-            build strength, <br />
-            <span className="hkq-gradient-text" style={styles.gradientText}>
-              {words[wordIndex]}.
-            </span>
-          </h1>
+          {/* --- Right Column: App Mockup --- */}
+          <div className="flex-1 w-full flex justify-center lg:justify-end relative">
+            {/* FIXED: Added negative margin top (-mt-12) on mobile to pull image closer to buttons */}
+            <div className="relative w-full max-w-[380px] md:max-w-[800px] animate-float -mt-9 lg:mt-0 lg:-mr-20">
+              <img
+                src={appMockup}
+                alt="HakbangQuest App Interface"
+                // FIXED: Increased mobile scale to 125 to match desktop zoom and hide padding
+                className="w-full h-auto object-contain drop-shadow-2xl transform scale-125 origin-center"
+              />
 
-          <p style={styles.subtitle}>
-            From running and cycling to push-ups and beyond—HakbangQuest keeps
-            your progress simple, minimal, and motivating.
-          </p>
-
-          <div style={styles.buttonGroup}>
-            <PrimaryButton onClick={onGetApp}>
-              Get the App
-            </PrimaryButton>
-            <SecondaryButton onClick={onShareSuggestion}>
-              Share a Suggestion
-            </SecondaryButton>
+              <div className="absolute -z-10 top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[60%] h-[60%] bg-blue-500/20 blur-3xl rounded-full" />
+            </div>
           </div>
+
         </div>
       </div>
     </section>
   );
-};
-
-// --- Sub-Components for Clean Code ---
-
-const PrimaryButton = ({ children, onClick }) => {
-  const [hover, setHover] = useState(false);
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        ...styles.btnBase,
-        ...styles.btnPrimary,
-        transform: hover ? "translateY(-2px)" : "translateY(0)",
-        boxShadow: hover ? "0 10px 25px -5px rgba(67, 97, 238, 0.5)" : "0 4px 6px -1px rgba(0,0,0,0.1)",
-      }}
-    >
-      {children}
-    </button>
-  );
-};
-
-const SecondaryButton = ({ children, onClick }) => {
-  const [hover, setHover] = useState(false);
-  return (
-    <button
-      onClick={onClick}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={{
-        ...styles.btnBase,
-        ...styles.btnSecondary,
-        background: hover ? "rgba(255, 255, 255, 0.15)" : "rgba(255, 255, 255, 0.1)",
-        transform: hover ? "translateY(-2px)" : "translateY(0)",
-      }}
-    >
-      {children}
-    </button>
-  );
-};
-
-// --- Styles Object ---
-
-const styles = {
-  heroWrapper: {
-    position: "relative",
-    height: "85vh",
-    minHeight: "600px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    overflow: "hidden",
-    color: COLORS.white,
-  },
-  bgImage: {
-    position: "absolute",
-    top: 0,
-    left: 0,
-    width: "100%",
-    height: "100%",
-    backgroundSize: "cover",
-    backgroundPosition: "center",
-    willChange: "transform",
-    zIndex: 0,
-  },
-  overlay: {
-    position: "absolute",
-    inset: 0,
-    background: "linear-gradient(180deg, rgba(15, 23, 42, 0.4) 0%, rgba(15, 23, 42, 0.7) 60%, rgba(15, 23, 42, 0.95) 100%)",
-    zIndex: 1,
-  },
-  container: {
-    position: "relative",
-    zIndex: 10,
-    width: "100%",
-    maxWidth: "1200px",
-    padding: "0 24px",
-    margin: "0 auto",
-  },
-  content: {
-    maxWidth: "800px",
-    display: "flex",
-    flexDirection: "column",
-    gap: "24px",
-    justifyContent: "center",
-  },
-  badge: {
-    display: "inline-flex",
-    alignItems: "center",
-    background: "rgba(255, 255, 255, 0.1)",
-    backdropFilter: "blur(4px)",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
-    padding: "8px 16px",
-    borderRadius: "100px",
-    fontSize: "13px",
-    fontWeight: "700",
-    letterSpacing: "1px",
-    width: "fit-content",
-    color: "#E2E8F0",
-  },
-  title: {
-    fontSize: "clamp(40px, 6vw, 72px)",
-    fontWeight: "900",
-    lineHeight: 1.1,
-    letterSpacing: "-0.02em",
-    margin: 0,
-  },
-  gradientText: {
-    display: "block",
-    marginTop: "8px",
-  },
-  subtitle: {
-    fontSize: "clamp(16px, 2vw, 20px)",
-    lineHeight: 1.6,
-    color: COLORS.textLight,
-    maxWidth: "600px",
-    margin: 0,
-  },
-  buttonGroup: {
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "16px",
-    marginTop: "16px",
-  },
-  btnBase: {
-    padding: "16px 32px",
-    fontSize: "16px",
-    fontWeight: "700",
-    borderRadius: "14px",
-    cursor: "pointer",
-    border: "none",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    display: "inline-flex",
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  btnPrimary: {
-    background: COLORS.blue,
-    color: COLORS.white,
-  },
-  btnSecondary: {
-    background: "rgba(255, 255, 255, 0.1)",
-    backdropFilter: "blur(10px)",
-    border: "1px solid rgba(255, 255, 255, 0.2)",
-    color: COLORS.white,
-  },
 };
 
 export default Hero;

@@ -1,189 +1,137 @@
-import React, { useState } from "react";
+import React from "react";
+import {
+  IoFlag,
+  IoWalk,
+  IoTrophy,
+  IoBarChart,
+  IoPeople,
+  IoGameController
+} from "react-icons/io5";
 
-// Features data
 const featuresData = [
   {
-    icon: "🎯",
+    icon: <IoFlag />,
     title: "Goal Tracking",
-    description:
-      "Set personalized fitness goals and track your progress with detailed analytics and milestones.",
-    color: "#4361EE",
+    description: "Set personalized fitness goals and track your progress with detailed analytics.",
+    color: "text-blue-500",
+    bg: "bg-blue-500/10",
+    glow: "shadow-blue-500/50",
+    size: "md:col-span-2", // Spans 2 columns
   },
   {
-    icon: "🏃‍♂️",
-    title: "Activity Monitoring",
-    description:
-      "Monitor your daily steps, distance, calories burned, and active minutes automatically.",
-    color: "#FFC107",
+    icon: <IoWalk />,
+    title: "Activity Monitor",
+    description: "Auto-track steps & distance.",
+    color: "text-yellow-500",
+    bg: "bg-yellow-500/10",
+    glow: "shadow-yellow-500/50",
+    size: "md:col-span-1",
   },
   {
-    icon: "🏆",
-    title: "Achievement System",
-    description:
-      "Unlock badges and achievements as you reach new fitness milestones and complete challenges.",
-    color: "#E63946",
+    icon: <IoGameController />,
+    title: "Gamified",
+    description: "Turn workouts into quests.",
+    color: "text-purple-500",
+    bg: "bg-purple-500/10",
+    glow: "shadow-purple-500/50",
+    size: "md:col-span-1",
   },
   {
-    icon: "📊",
-    title: "Progress Analytics",
-    description:
-      "View detailed charts and insights about your fitness journey and performance trends.",
-    color: "#06D6A0",
-  },
-  {
-    icon: "🌍",
+    icon: <IoPeople />,
     title: "Community Challenges",
-    description:
-      "Join community challenges and compete with friends to stay motivated and engaged.",
-    color: "#118AB2",
+    description: "Join challenges, compete with friends, and climb the global leaderboards together.",
+    color: "text-cyan-500",
+    bg: "bg-cyan-500/10",
+    glow: "shadow-cyan-500/50",
+    size: "md:col-span-2", // Spans 2 columns
   },
   {
-    icon: "🎮",
-    title: "Gamified Experience",
-    description:
-      "Turn your fitness journey into an exciting game with quests, rewards, and level progression.",
-    color: "#FFD166",
+    icon: <IoTrophy />,
+    title: "Achievements",
+    description: "Unlock badges as you go.",
+    color: "text-red-500",
+    bg: "bg-red-500/10",
+    glow: "shadow-red-500/50",
+    size: "md:col-span-1",
+  },
+  {
+    icon: <IoBarChart />,
+    title: "Analytics",
+    description: "See your trends over time.",
+    color: "text-emerald-500",
+    bg: "bg-emerald-500/10",
+    glow: "shadow-emerald-500/50",
+    size: "md:col-span-1",
   },
 ];
 
 const Features = () => {
   return (
-    <section style={styles.section} id="features">
-      <div style={styles.container}>
-        <div style={styles.header}>
-          <span style={styles.badge}>POWER UP</span>
-          <h2 style={styles.title}>Epic Features</h2>
-          <p style={styles.subtitle}>
-            Power up your <span style={{ color: "#4361EE", fontWeight: "bold" }}>HakbangQuest</span> adventure with features designed to make
-            fitness fun, competitive, and rewarding.
+    <section id="features" className="py-20 px-6 bg-white dark:bg-slate-950 transition-colors duration-300">
+      <div className="container mx-auto max-w-6xl">
+
+        {/* Header */}
+        <div className="mb-16 text-center md:text-left flex flex-col md:flex-row items-end justify-between gap-6">
+          <div className="max-w-2xl">
+            <div className="inline-flex items-center gap-2 mb-4 px-3 py-1 rounded-full bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 text-xs font-bold uppercase tracking-wider">
+              <span className="w-2 h-2 rounded-full bg-blue-500"></span>
+              Everything you need
+            </div>
+            <h2 className="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight">
+              Powerful Features. <br />
+              <span className="text-slate-400 dark:text-slate-600">Zero Clutter.</span>
+            </h2>
+          </div>
+          <p className="text-slate-500 dark:text-slate-400 max-w-xs text-sm md:text-base leading-relaxed text-center md:text-right">
+            We packed HakbangQuest with everything you need to stay moving, without the complicated menus.
           </p>
         </div>
 
-        <div style={styles.grid}>
+        {/* Bento Grid Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 auto-rows-[minmax(180px,auto)]">
           {featuresData.map((feature, index) => (
-            <FeatureCard key={index} feature={feature} />
+            <div
+              key={index}
+              className={`
+                ${feature.size} 
+                group relative overflow-hidden rounded-[2rem] p-8 
+                bg-slate-50 dark:bg-slate-900 
+                border border-slate-100 dark:border-slate-800 
+                transition-all duration-300 hover:scale-[1.02] hover:shadow-xl dark:hover:shadow-slate-900/50
+              `}
+            >
+              {/* Hover Gradient Overlay */}
+              <div className={`absolute inset-0 opacity-0 group-hover:opacity-10 transition-opacity duration-500 bg-gradient-to-br from-white to-transparent dark:from-white dark:to-transparent pointer-events-none`} />
+
+              <div className="relative z-10 flex flex-col h-full justify-between">
+
+                {/* Icon Box */}
+                <div className={`
+                  w-14 h-14 rounded-2xl flex items-center justify-center text-2xl mb-6 
+                  ${feature.bg} ${feature.color} 
+                  group-hover:scale-110 transition-transform duration-300
+                  shadow-lg ${feature.glow}
+                `}>
+                  {React.cloneElement(feature.icon, { size: 28 })}
+                </div>
+
+                {/* Text Content */}
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                    {feature.title}
+                  </h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+                    {feature.description}
+                  </p>
+                </div>
+              </div>
+            </div>
           ))}
         </div>
+
       </div>
     </section>
   );
-};
-
-// Extracted Card Component for cleaner state management
-const FeatureCard = ({ feature }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
-  return (
-    <div
-      style={{
-        ...styles.card,
-        borderColor: isHovered ? feature.color : "transparent",
-        transform: isHovered ? "translateY(-8px)" : "translateY(0)",
-        boxShadow: isHovered
-          ? `0 20px 40px -15px ${feature.color}40`
-          : "0 4px 6px -1px rgba(0, 0, 0, 0.1)",
-      }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <div
-        style={{
-          ...styles.iconContainer,
-          background: isHovered
-            ? `${feature.color}20`
-            : "rgba(67, 97, 238, 0.05)",
-          color: feature.color,
-        }}
-      >
-        <span style={{ fontSize: "32px" }}>{feature.icon}</span>
-      </div>
-      <h3 style={styles.cardTitle}>{feature.title}</h3>
-      <p style={styles.cardDescription}>{feature.description}</p>
-    </div>
-  );
-};
-
-const styles = {
-  section: {
-    padding: "100px 24px",
-    background: "#F8FAFC",
-  },
-  container: {
-    maxWidth: 1200,
-    margin: "0 auto",
-  },
-  header: {
-    textAlign: "center",
-    marginBottom: 64,
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "center",
-    gap: 16,
-  },
-  badge: {
-    background: "#EEF2FF",
-    color: "#4361EE",
-    padding: "6px 12px",
-    borderRadius: "20px",
-    fontSize: "12px",
-    fontWeight: "800",
-    letterSpacing: "0.5px",
-    textTransform: "uppercase",
-  },
-  title: {
-    fontSize: "clamp(32px, 5vw, 42px)",
-    fontWeight: 900,
-    margin: 0,
-    color: "#0F172A",
-    lineHeight: 1.1,
-  },
-  subtitle: {
-    fontSize: "clamp(16px, 2vw, 18px)",
-    color: "#64748B",
-    margin: 0,
-    maxWidth: 600,
-    lineHeight: 1.6,
-  },
-  grid: {
-    display: "grid",
-    gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
-    gap: 32,
-  },
-  card: {
-    background: "#FFFFFF",
-    borderRadius: "24px",
-    padding: "32px",
-    border: "2px solid transparent",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    cursor: "default",
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-start",
-    gap: "16px",
-    height: "100%",
-  },
-  iconContainer: {
-    width: 64,
-    height: 64,
-    borderRadius: "16px",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    marginBottom: "8px",
-    transition: "background 0.3s ease",
-  },
-  cardTitle: {
-    fontSize: "20px",
-    fontWeight: 800,
-    margin: 0,
-    color: "#0F172A",
-  },
-  cardDescription: {
-    fontSize: "15px",
-    color: "#64748B",
-    margin: 0,
-    lineHeight: 1.6,
-  },
 };
 
 export default Features;

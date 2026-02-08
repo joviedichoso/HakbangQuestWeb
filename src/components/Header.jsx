@@ -1,44 +1,12 @@
 import React, { useState, useEffect } from "react";
-import icon from "../../src/assets/image/icon.png";
-
-// Reusable media query hook
-function useMediaQuery(query) {
-  const [matches, setMatches] = useState(() => {
-    if (typeof window === "undefined") return false;
-    return window.matchMedia(query).matches;
-  });
-
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-    const mql = window.matchMedia(query);
-    const handler = (e) => setMatches(e.matches);
-
-    // Modern vs Legacy listener support
-    if (mql.addEventListener) {
-      mql.addEventListener("change", handler);
-    } else {
-      mql.addListener(handler);
-    }
-
-    return () => {
-      if (mql.removeEventListener) {
-        mql.removeEventListener("change", handler);
-      } else {
-        mql.removeListener(handler);
-      }
-    };
-  }, [query]);
-
-  return matches;
-}
-
-const COLORS = {
-  blue: "#4361EE",
-  blueHover: "#3a55d6",
-  yellow: "#FFC107",
-  text: "#0F172A",
-  border: "rgba(15, 23, 42, 0.08)",
-};
+import icon from "../assets/image/icon.png";
+import {
+  IoMoon,
+  IoSunny,
+  IoDownloadOutline,
+  IoMenu,
+  IoClose
+} from "react-icons/io5";
 
 function Header({
   isAdmin,
@@ -46,11 +14,13 @@ function Header({
   onLoginToggle,
   onInstall,
   isInstalling = false,
+  theme,
+  toggleTheme,
 }) {
   const [isScrolled, setIsScrolled] = useState(false);
-  const isMobile = useMediaQuery("(max-width: 480px)");
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Handle scroll effect for glassmorphism
+  // Handle scroll effect
   useEffect(() => {
     const handleScroll = () => {
       setIsScrolled(window.scrollY > 20);
@@ -59,151 +29,131 @@ function Header({
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
+  // Close mobile menu when window resizes to desktop
+  useEffect(() => {
+    const handleResize = () => {
+      if (window.innerWidth >= 768) {
+        setIsMobileMenuOpen(false);
+      }
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   return (
     <header
-      style={{
-        ...styles.header,
-        background: isScrolled
-          ? "rgba(255, 255, 255, 0.85)"
-          : "rgba(255, 255, 255, 0.6)",
-        backdropFilter: "blur(12px)",
-        borderBottom: isScrolled
-          ? `1px solid ${COLORS.border}`
-          : "1px solid transparent",
-        padding: isScrolled ? "12px 24px" : "20px 24px",
-        boxShadow: isScrolled
-          ? "0 4px 20px -2px rgba(0, 0, 0, 0.05)"
-          : "none",
-      }}
+      className={`fixed top-0 z-50 w-full transition-all duration-300 ${isScrolled || isMobileMenuOpen
+          ? "py-3 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md shadow-sm dark:shadow-slate-900/50"
+          : "py-5 bg-transparent"
+        }`}
     >
-      <div style={styles.container}>
-        {/* Brand Section */}
-        <div style={styles.brand}>
-          <img src={icon} alt="Logo" style={styles.logo} />
-          <div style={styles.brandText}>
-            <span style={{ color: COLORS.blue }}>Hakbang</span>
-            <span style={{ color: COLORS.yellow }}>Quest</span>
+      <div className="container mx-auto px-6 max-w-7xl">
+        <div className="flex items-center justify-between">
+
+          {/* --- Brand --- */}
+          <div className="flex items-center gap-3 select-none z-50 relative">
+            <img
+              src={icon}
+              alt="Logo"
+              className="w-9 h-9 rounded-xl shadow-md"
+            />
+            <div className="text-xl font-black tracking-tighter">
+              <span className="text-blue-600 dark:text-blue-400">Hakbang</span>
+              <span className="text-yellow-500">Quest</span>
+            </div>
+          </div>
+
+          {/* --- Desktop Actions (Hidden on Mobile) --- */}
+          <div className="hidden md:flex items-center gap-3">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Toggle Theme"
+            >
+              {theme === "dark" ? <IoSunny size={20} /> : <IoMoon size={20} />}
+            </button>
+
+            {/* Admin / Logout */}
+            <button
+              onClick={isAdmin ? onLogout : onLoginToggle}
+              className="px-4 py-2.5 rounded-xl font-bold text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+            >
+              {isAdmin ? "Log Out" : "Admin"}
+            </button>
+
+            {/* Install Button */}
+            <button
+              onClick={onInstall}
+              disabled={isInstalling}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-bold text-sm text-white transition-all shadow-lg shadow-blue-500/30 hover:shadow-blue-500/40 hover:-translate-y-0.5 ${isInstalling
+                  ? "bg-slate-400 cursor-wait"
+                  : "bg-blue-600 hover:bg-blue-700 dark:bg-blue-600 dark:hover:bg-blue-500"
+                }`}
+            >
+              {!isInstalling && <IoDownloadOutline size={18} />}
+              {isInstalling ? "Installing..." : "Install App"}
+            </button>
+          </div>
+
+          {/* --- Mobile Toggles (Visible on Mobile) --- */}
+          <div className="flex md:hidden items-center gap-2 z-50 relative">
+            {/* Theme Toggle (Visible on Mobile Bar) */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+            >
+              {theme === "dark" ? <IoSunny size={20} /> : <IoMoon size={20} />}
+            </button>
+
+            {/* Hamburger Menu Button */}
+            <button
+              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+              className="p-2 rounded-xl text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+              aria-label="Menu"
+            >
+              {isMobileMenuOpen ? <IoClose size={24} /> : <IoMenu size={24} />}
+            </button>
           </div>
         </div>
 
-        {/* Actions Section */}
-        <div style={styles.actions}>
-          {/* Admin / Logout Button */}
-          <NavButton
-            onClick={isAdmin ? onLogout : onLoginToggle}
-            label={isAdmin ? "Log Out" : "Admin"}
-            variant="ghost"
-          />
+        {/* --- Mobile Menu Dropdown --- */}
+        <div
+          className={`absolute top-full left-0 w-full bg-white/95 dark:bg-slate-900/95 backdrop-blur-xl border-t border-slate-100 dark:border-slate-800 shadow-xl overflow-hidden transition-all duration-300 ease-in-out md:hidden ${isMobileMenuOpen ? "max-h-64 opacity-100" : "max-h-0 opacity-0"
+            }`}
+        >
+          <div className="flex flex-col p-4 gap-3">
+            {/* Admin Mobile */}
+            <button
+              onClick={() => {
+                isAdmin ? onLogout() : onLoginToggle();
+                setIsMobileMenuOpen(false);
+              }}
+              className="w-full py-3 rounded-xl font-bold text-sm text-slate-700 dark:text-slate-200 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 transition-all"
+            >
+              {isAdmin ? "Log Out" : "Admin Login"}
+            </button>
 
-          {/* Install App Button (CTA) */}
-          <NavButton
-            onClick={onInstall}
-            label={isInstalling ? "Installing..." : "Install App"}
-            variant="primary"
-            disabled={isInstalling}
-          />
+            {/* Install Mobile */}
+            <button
+              onClick={() => {
+                onInstall();
+                setIsMobileMenuOpen(false);
+              }}
+              disabled={isInstalling}
+              className={`w-full flex justify-center items-center gap-2 py-3 rounded-xl font-bold text-sm text-white transition-all shadow-md ${isInstalling
+                  ? "bg-slate-400 cursor-wait"
+                  : "bg-blue-600 hover:bg-blue-700"
+                }`}
+            >
+              {!isInstalling && <IoDownloadOutline size={18} />}
+              {isInstalling ? "Installing..." : "Install App"}
+            </button>
+          </div>
         </div>
       </div>
     </header>
   );
 }
-
-// Sub-component for Buttons to keep JSX clean
-const NavButton = ({ onClick, label, variant, disabled, icon }) => {
-  const [hover, setHover] = useState(false);
-
-  const baseStyle = {
-    ...styles.buttonBase,
-    ...(variant === "primary" ? styles.primaryBtn : styles.ghostBtn),
-    opacity: disabled ? 0.7 : 1,
-    cursor: disabled ? "wait" : "pointer",
-    transform: hover && !disabled ? "translateY(-1px)" : "none",
-    boxShadow:
-      hover && variant === "primary" && !disabled
-        ? "0 6px 12px rgba(67, 97, 238, 0.3)"
-        : "none",
-    background:
-      variant === "ghost" && hover
-        ? "rgba(15, 23, 42, 0.05)"
-        : variant === "primary" && hover
-          ? COLORS.blueHover
-          : variant === "primary"
-            ? COLORS.blue
-            : "transparent",
-  };
-
-  return (
-    <button
-      onClick={onClick}
-      disabled={disabled}
-      onMouseEnter={() => setHover(true)}
-      onMouseLeave={() => setHover(false)}
-      style={baseStyle}
-    >
-      {icon && <span style={{ marginRight: 6 }}>{icon}</span>}
-      {label}
-    </button>
-  );
-};
-
-const styles = {
-  header: {
-    position: "sticky",
-    top: 0,
-    zIndex: 100,
-    width: "100%",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-    boxSizing: "border-box", // Essential for padding transitions
-  },
-  container: {
-    maxWidth: "1200px",
-    margin: "0 auto",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "space-between",
-  },
-  brand: {
-    display: "flex",
-    alignItems: "center",
-    gap: "10px",
-    cursor: "default",
-  },
-  logo: {
-    width: "36px",
-    height: "36px",
-    borderRadius: "10px",
-    boxShadow: "0 4px 10px rgba(0,0,0,0.1)",
-  },
-  brandText: {
-    fontSize: "20px",
-    fontWeight: "900",
-    letterSpacing: "-0.5px",
-    userSelect: "none",
-  },
-  actions: {
-    display: "flex",
-    alignItems: "center",
-    gap: "12px",
-  },
-  buttonBase: {
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    fontSize: "14px",
-    fontWeight: "700",
-    border: "none",
-    borderRadius: "12px",
-    padding: "10px 16px",
-    transition: "all 0.2s ease",
-  },
-  primaryBtn: {
-    color: "#FFFFFF",
-    background: COLORS.blue,
-  },
-  ghostBtn: {
-    color: COLORS.text,
-    background: "transparent",
-  },
-};
 
 export default Header;
