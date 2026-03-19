@@ -148,7 +148,7 @@ function DashboardScreen({ theme, toggleTheme }) {
 
   const handleDownloadAPK = () => {
     setIsDownloading(true);
-    const apkUrl = "https://github.com/joviedichoso/HakbangQuestWeb/releases/download/V1.4/HakbangQuest.apk";
+    const apkUrl = "https://github.com/joviedichoso/HakbangQuestWeb/releases/download/v1.5/HakbangQuest.apk";
     const link = document.createElement("a");
     link.href = apkUrl;
     link.download = "HakbangQuest.apk";
